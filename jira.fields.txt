@@ -1,0 +1,126 @@
+Summary
+Absences Account
+Issue Type
+Team Name
+Team Leads
+Time Spent
+Team Members
+WFH per Year
+Reporter
+Area
+Created
+Rehire
+Donations
+Portal Issue Types Mapping
+Vacation Days per Month
+Previous Year Unspent Vacations
+Based on
+WBS number
+issueFunction
+Zephyr Teststep
+Project
+Watchers
+As a Client
+Last Viewed
+Location
+Component/s
+Original Estimate
+Account Management
+Tempo
+Votes
+City
+Brand Project
+Resolved
+Amount
+Payment Deadline
+Approval Level
+Currency
+Entity
+Approvers
+Due Date
+Sprint
+Urgency
+Rate description
+Merge into issue
+Remaining Estimate
+AccountID
+Progress
+Environment
+Software
+QA Services
+Reporting to
+Terms (Benefits)
+Employment Packet (Legal) Attached?
+Handbook Attached?
+JAMS RulesAttached?
+SSN Collected?
+Delete Team Leads
+Add Team Leads
+Delete Team Members
+Category
+Updated
+Add Team Members
+Termination Date
+Team
+Cause
+Priority
+Description
+Disable create another checkbox
+Server
+Epic/Theme
+Linked Issues
+Technical Services
+Rank
+Flagged
+Tool
+Sub-Tasks
+Expense Type
+Planned End
+Planned Start
+Overall Satisfaction
+Other root cause description
+Status
+Release Version History
+Labels
+Units
+Work Ratio
+Type
+DueTime
+Username
+PercentDone
+Projects/Spaces list
+Project Management
+Portal Key
+Name and Title of Signatory of Other Party?
+Name and Title of Signatory for Amaze Entity?
+Address of Other Party?
+╬г Progress
+Which Amaze entity?
+Title / Summary
+Gantt Options
+Generate List of Standard Activities?
+Repository Path
+Environment Changes
+Preconditions
+Milestone
+Epic Link
+Fix Version/s
+Resolution
+Creator
+Original Estimate
+Compensation Terms
+Environment2
+Duration
+Root Cause for the bug
+Repository
+Reopens
+Business Impact
+Business Deadline
+Assignee
+Remaining Estimate
+List of Software
+Affects Version/s
+Locales
+Mobile devices
+Browsers
+Bug Priority

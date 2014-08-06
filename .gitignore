@@ -1,0 +1,4 @@
+# Created by .gitignore support plugin (hsz.mobi)
+atlassian-ide-plugin.xml
+jira-common.php
+jira.password

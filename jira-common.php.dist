@@ -1,0 +1,16 @@
+<?php
+/**
+ * Password should be in the file "jira.password"
+ */
+//
+$jiraUser                     = 'u.sername';
+//URL to JIRA
+$jiraUrl                      = 'http://jira.example.com';
+//JIRA project key
+$project                      = 'PRJ';
+$branchTop                    = 'origin/hotfix/1.0.5';
+$branchLow                    = 'origin/master';
+$requiredFixVersion           = 'v1.0.5';
+$requiredFixVersionInProgress = true;
+$activeSprintId               = array(1095, 1062);
+$gitRoot                      = 'd:/home/project/';
