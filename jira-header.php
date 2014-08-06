@@ -2,7 +2,7 @@
 $inProgress = $requiredFixVersionInProgress ? 'YES' : 'NO';
 $activeSprintIdString = implode(', ', $activeSprintIds);
 echo <<<HEADER
-JiGIT - JIRA GIT Synchronization Tool v0.1
+JiGIT - JIRA GIT Synchronization Tool v0.1.2
 https://github.com/andkirby/jigit-sync
 =================================================
 Project:             $project

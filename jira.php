@@ -59,6 +59,21 @@ $jqlList[] = array(
     'type'    => JiraJql::TYPE_WITHOUT_FIX_VERSION,
 );
 
+//not affected code
+$message = 'Issues which did not affect the code.';
+//@startSkipCommitHooks
+$jql = <<<JQL
+project = $project
+    AND fixVersion = $requiredFixVersion
+    AND key NOT IN ($keys)
+JQL;
+//@finishSkipCommitHooks
+$jqlList[] = array(
+    'message' => $message,
+    'jql'     => $jql,
+    'type'    => JiraJql::TYPE_WITHOUT_FIX_VERSION,
+);
+
 if ($requiredFixVersionInProgress) {
     //open issues for in progress version
     $message = 'Open issues for "in progress" fix version.';
@@ -133,10 +148,12 @@ foreach ($jqlList as $item) {
     $toOutput = array();
     /** @var \chobie\Jira\Issue $issue */
     foreach ($result->getIssues() as $issue) {
-        $fields = $issue->getFields();
+        //Skip build notes issue
+        if (false !== strpos($issue->getSummary(), 'Build ' . $requiredFixVersion)) {
+            continue;
+        }
 
-        //status
-        $status = $issue->getStatus();
+        $fields = $issue->getFields();
 
         //fixVersions
         $fixVersionsString = '';
@@ -198,14 +215,16 @@ foreach ($jqlList as $item) {
 
         $showKeys[] = $issue->getKey();
 
+        $status = $issue->getStatus();
+
         $toOutput[] = <<<ISSUE
 -------------------------------------------------
-Key:              {$issue->getKey()}
-Summary:          {$issue->getSummary()}
-Status:           {$status['name']}
-FixVersion:       {$fixVersionsString}
-AffectedVersions: {$affectedVersionsString}
-Sprint:           {$sprint}
+Key:               {$issue->getKey()}
+Summary:           {$issue->getSummary()}
+Status:            {$status['name']}
+AffectedVersion/s: {$affectedVersionsString}
+FixVersion/s:      {$fixVersionsString}
+Sprint:            {$sprint}
 ISSUE;
         $added = true;
     }
