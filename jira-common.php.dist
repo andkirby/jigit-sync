@@ -2,15 +2,23 @@
 /**
  * Password should be in the file "jira.password"
  */
-//
+//JIRA username
 $jiraUser                     = 'u.sername';
 //URL to JIRA
 $jiraUrl                      = 'http://jira.example.com';
 //JIRA project key
 $project                      = 'PRJ';
+//GIT target branch
 $branchTop                    = 'origin/hotfix/1.0.5';
+//GIT nearest branch to compare
 $branchLow                    = 'origin/master';
+//Fix version of target branch
 $requiredFixVersion           = 'v1.0.5';
+//Status of fix version. It affects query types.
+//TODO get this value from JIRA
 $requiredFixVersionInProgress = true;
-$activeSprintId               = array(1095, 1062);
+//List of active sprints
+//TODO get this value from JIRA
+$activeSprintIds              = array(1095, 1062);
+//Path GIT project root directory
 $gitRoot                      = 'd:/home/project/';
