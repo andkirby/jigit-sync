@@ -15,22 +15,26 @@ class JiraJql
     /**#@-*/
 }
 
-$api = new \chobie\Jira\Api(
-    $jiraUrl,
-    new \chobie\Jira\Api\Authentication\Basic($jiraUser, $jiraPassword)
-);
-$gitRoot = str_replace('\\', '/', $gitRoot);
 /**
  * Get issues between different code versions
  */
+$gitRoot = str_replace('\\', '/', $gitRoot);
 $log = `git --git-dir $gitRoot/.git/ log $branchLow..$branchTop --oneline --no-merges`;
 preg_match_all('/' . $project . '-[0-9]+/', $log, $matches);
 $keys = array_unique($matches[0]);
 $keys = implode(', ', $keys);
 //add line separators
 $keys = preg_replace('/(([A-Za-z-0-9]+,\s*){4})/', '$1' . PHP_EOL, $keys);
-$output[] = 'Found issues: ' . PHP_EOL . $keys;
+$output[] = 'Found issues in GIT: ' . PHP_EOL . $keys;
 $output[] = '===============================================';
+
+/**
+ * Connect to JIRA
+ */
+$api = new \chobie\Jira\Api(
+    $jiraUrl,
+    new \chobie\Jira\Api\Authentication\Basic($jiraUser, $jiraPassword)
+);
 
 /**
  * Request problem issues
@@ -112,11 +116,8 @@ JQL;
 }
 
 /**
- * Fields list
- *
- *
+ * Show found issues
  */
-
 $hasNoSprint = array();
 foreach ($jqlList as $item) {
     $jql = $item['jql'];
@@ -198,7 +199,7 @@ foreach ($jqlList as $item) {
         $showKeys[] = $issue->getKey();
 
         $toOutput[] = <<<ISSUE
--------
+-------------------------------------------------
 Key:              {$issue->getKey()}
 Summary:          {$issue->getSummary()}
 Status:           {$status['name']}
@@ -222,6 +223,10 @@ ISSUE;
 if ($hasNoSprint) {
     $output[] = '============= Issues did not add to active sprint =============';
     $output[] = 'Keys: ' . (implode(',', $hasNoSprint));
+}
+
+if (count($output) === 2) {
+    $output[] = 'Everything is OK.';
 }
 
 echo implode(PHP_EOL, $output);
