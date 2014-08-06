@@ -1,16 +1,14 @@
 jigit-sync
 =============
 # JiGIT Sync
-## JIRA GIT Synchronization Tool
+## JIRA & GIT Synchronization Tool
 This project designed to make synchronization between code under GIT and JIRA issues.
 
 ## Installation
 ### Requirements
 - GIT commit messages must have related issue key.
 
-
-    Fixed PRJ-123: Some issue summary
-    \- Extra comments
+Fixed PRJ-123: Some issue summary
 - This application requires jira-api-restclient 
 (https://github.com/chobie/jira-api-restclient.git).
 
