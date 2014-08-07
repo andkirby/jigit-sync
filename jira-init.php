@@ -95,27 +95,9 @@ class JigitOutput
     {
         $contents = explode($delimiter, $content);
         foreach ($contents as $content) {
-            if ($this->_decoratorOn) {
-                $length = mb_strlen($content);
-                if (!$this->_decoratorSpaced) {
-                    $internalSymbol = $this->_decoratorDelimiterSymbol;
-                    $this->_output[] =
-                        $this->_decoratorSymbol
-                        . str_repeat($internalSymbol, max(floor(($this->_decoratorWidth - $length) / 2) - 2, 0))
-                        . ' ' . $content . ' '
-                        . str_repeat($internalSymbol, max(ceil(($this->_decoratorWidth - $length) / 2) - 2, 0))
-                        . $this->_decoratorSymbol;
-                } else {
-                    $this->_output[] =
-                        $this->_decoratorSymbol . ' ' . $content . ' '
-                        . str_repeat(' ', max(($this->_decoratorWidth - $length) - 5, 0)) . ' '
-                        . $this->_decoratorSymbol;
-                }
-            } else {
-                $this->_output[] = (string) $content;
-            }
+            $content = $this->_decorateRow($content);
+            $this->_output[] = (string) $content;
         }
-
         return $this;
     }
 
@@ -123,15 +105,18 @@ class JigitOutput
      * Enable decorate mode
      *
      * @param bool $spaced
+     * @param bool $skipDelimiter
      * @return $this
      */
-    public function enableDecorator($spaced = false)
+    public function enableDecorator($spaced = false, $skipDelimiter = false)
     {
         if ($this->_decoratorOn) {
             return $this;
         }
-        $row                    = str_repeat($this->_decoratorSymbol, $this->_decoratorWidth);
-        $this->_output[]        = $row;
+        if (!$skipDelimiter) {
+            $row                    = str_repeat($this->_decoratorSymbol, $this->_decoratorWidth);
+            $this->_output[]        = $row;
+        }
         $this->_decoratorOn     = true;
         $this->_decoratorSpaced = (bool)$spaced;
         return $this;
@@ -181,6 +166,34 @@ class JigitOutput
     {
         return implode($this->_outputDelimiter, $this->_output) . $this->_outputDelimiter;
     }
+
+    /**
+     * Decorate content string
+     *
+     * @param string $content
+     * @return string
+     */
+    protected function _decorateRow($content)
+    {
+        if ($this->_decoratorOn) {
+            $length = mb_strlen($content);
+            if (!$this->_decoratorSpaced) {
+                $internalSymbol = $this->_decoratorDelimiterSymbol;
+                $output = $this->_decoratorSymbol
+                    . str_repeat($internalSymbol, max(floor(($this->_decoratorWidth - $length) / 2) - 2, 0))
+                    . ' ' . $content . ' '
+                    . str_repeat($internalSymbol, max(ceil(($this->_decoratorWidth - $length) / 2) - 2, 0))
+                    . $this->_decoratorSymbol;
+            } else {
+                $output = $this->_decoratorSymbol . ' ' . $content . ' '
+                    . str_repeat(' ', max(($this->_decoratorWidth - $length) - 5, 0)) . ' '
+                    . $this->_decoratorSymbol;
+            }
+        } else {
+            $output = (string)$content;
+        }
+        return $output;
+    }
 }
 
 /**
@@ -195,6 +208,7 @@ class JiraJql
     const TYPE_WITHOUT_FIX_VERSION                  = 'inBranchWithoutFixVersion';
     const TYPE_WITHOUT_AFFECTED_VERSION             = 'inBranchWithoutAffectedVersion';
     const TYPE_WITHOUT_OPEN_FOR_IN_PROGRESS_VERSION = 'inBranchWithoutFixVersionNotDone';
+    const TYPE_PARENT_HAS_COMMIT                    = 'parentIssueHasCommit';
     /**#@-*/
 }
 

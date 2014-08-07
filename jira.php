@@ -4,14 +4,9 @@ require_once 'jira-init.php'; //initialize
 
 $output = new JigitOutput();
 
-$version = 'v0.3.1';
-$inProgress = $requiredFixVersionInProgress ? 'YES' : 'NO';
-$activeSprintIdString = implode(', ', $activeSprintIds);
+require_once 'jira-header.php'; //get header content
 
-$output->enableDecorator(true);
-$output->add("JiGIT $version - JIRA GIT Synchronization Tool");
-$output->add('GitHUB: https://github.com/andkirby/jigit-sync');
-$output->addDelimiter();
+$output->enableDecorator(true, true);
 $output->add("Project:             $project");
 $output->add("Compare:             $branchTop -> $branchLow");
 $output->add("Required FixVersion: $requiredFixVersion");
@@ -19,37 +14,9 @@ $output->add("Version in progress: $inProgress");
 $output->add("Sprint:              $activeSprintIdString");
 $output->disableDecorator();
 
-/**
- * Get issues between different code versions
- */
-$gitError = false;
-$branchFound = (bool) `git --git-dir $gitRoot/.git/ branch -a --list $branchLow`;
-if (!$branchFound) {
-    $branchFound = (bool) `git --git-dir $gitRoot/.git/ tag --list $branchLow`;
-    if (!$branchFound) {
-        $output->add("ERROR: Branch or tag $branchLow not found.");
-        $gitError = true;
-    }
-}
-$branchFound = (bool) `git --git-dir $gitRoot/.git/ branch -a --list $branchTop`;
-if (!$branchFound) {
-    $branchFound = (bool) `git --git-dir $gitRoot/.git/ tag --list $branchTop`;
-    if (!$branchFound) {
-        $output->add("ERROR: Branch or tag $branchTop not found.");
-        $gitError = true;
-    }
-}
+$gitKeys = require_once 'git-keys.php';
 
-if ($gitError) {
-    echo $output->getOutputString();
-    return;
-}
-
-$log = `git --git-dir $gitRoot/.git/ log $branchLow..$branchTop --oneline --no-merges`;
-preg_match_all('/' . $project . '-[0-9]+/', $log, $matches);
-$keys = array_unique($matches[0]);
-$keys = implode(', ', $keys);
-$keys = JiraKeysFormatter::format($keys);
+$keys = JiraKeysFormatter::format(implode(', ', array_keys($gitKeys)));
 $output->add('Found issues in GIT: ' . $keys);
 
 /**
@@ -73,9 +40,13 @@ project = $project
         (fixVersion != $requiredFixVersion OR fixVersion is EMPTY)
         AND status NOT IN (Open, Reopened, 'In Progress')
     )
-    AND type NOT IN ('Sub-Task Task', 'Sub-Task Question')
-    AND key IN ($keys)
+    AND (
+        (key IN ($keys) AND type NOT IN ('Sub-Task Task'))
+        OR
+        (issueFunction IN parentsOf("project = $project AND key IN ($keys)"))
+    )
 JQL;
+echo $jql . PHP_EOL;
 //@finishSkipCommitHooks
 $jqlList[] = array(
     'message' => $message,
@@ -90,12 +61,29 @@ $jql = <<<JQL
 project = $project
     AND fixVersion = $requiredFixVersion
     AND key NOT IN ($keys)
+    AND (type IN ('Change Request', Story, Epic))
 JQL;
 //@finishSkipCommitHooks
 $jqlList[] = array(
     'message' => $message,
     'jql'     => $jql,
     'type'    => JiraJql::TYPE_NOT_AFFECTS_CODE,
+);
+
+//parent issue has commit
+$message = 'Parent issue has commit.';
+//@startSkipCommitHooks
+$jql = <<<JQL
+project = $project
+    AND fixVersion = $requiredFixVersion
+    AND key IN ($keys)
+    AND (type IN ('Change Request', Story, Epic) OR and issueFunction IN hasSubtasks())
+JQL;
+//@finishSkipCommitHooks
+$jqlList[] = array(
+    'message' => $message,
+    'jql'     => $jql,
+    'type'    => JiraJql::TYPE_PARENT_HAS_COMMIT,
 );
 
 if ($requiredFixVersionInProgress) {
@@ -179,6 +167,9 @@ foreach ($jqlList as $item) {
             continue;
         }
 
+        /**
+         * Identify issues which not in required branch
+         */
         if (JiraJql::TYPE_NOT_AFFECTS_CODE == $item['type']) {
             $key = $issue->getKey();
             $log = `git --git-dir $gitRoot/.git/ log --all --grep="$key"`;
@@ -251,10 +242,11 @@ foreach ($jqlList as $item) {
         $showKeys[] = $issue->getKey();
 
         $status = $issue->getStatus();
+        $type = $issue->getIssueType();
 
         $toOutput[] = <<<ISSUE
-Key:               {$issue->getKey()}
-Summary:           {$issue->getSummary()}
+Key:               {$issue->getKey()}: {$issue->getSummary()}
+Type:              {$type['name']}
 Status:            {$status['name']}
 AffectedVersion/s: {$affectedVersionsString}
 FixVersion/s:      {$fixVersionsString}
@@ -288,7 +280,7 @@ if ($hasNoSprint) {
 }
 if ($inDifferentBranch) {
     $output->enableDecorator();
-    $output->add('WARNING!!! Issues added in different branch');
+    $output->add('WARNING!!! Issues committed in a different branch');
     $output->disableDecorator();
     $keys = JiraKeysFormatter::format(implode(', ', $inDifferentBranch));
     $output->add('Keys: ' . $keys);
@@ -297,7 +289,7 @@ if ($inDifferentBranch) {
 
 if (!$found) {
     $output->enableDecorator();
-    $output->add('SUCCESS! Everything is OK.');
+    $output->add('SUCCESS! Everything is OK');
     $output->disableDecorator();
 }
 
