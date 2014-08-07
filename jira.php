@@ -1,32 +1,56 @@
 <?php
+
 require_once 'jira-init.php'; //initialize
 
-/**
- * Class with JQL query types
- */
-class JiraJql
-{
-    /**#@+
-     * Query types
-     */
-    const TYPE_WITHOUT_FIX_VERSION                  = 'inBranchWithoutFixVersion';
-    const TYPE_WITHOUT_AFFECTED_VERSION             = 'inBranchWithoutAffectedVersion';
-    const TYPE_WITHOUT_OPEN_FOR_IN_PROGRESS_VERSION = 'inBranchWithoutFixVersionNotDone';
-    /**#@-*/
-}
+$output = new JigitOutput();
+
+$version = 'v0.3.0';
+$inProgress = $requiredFixVersionInProgress ? 'YES' : 'NO';
+$activeSprintIdString = implode(', ', $activeSprintIds);
+
+$output->enableDecorator(true);
+$output->add('JiGIT - JIRA GIT Synchronization Tool ' . $version);
+$output->add('GitHUB: https://github.com/andkirby/jigit-sync');
+$output->addDelimiter();
+$output->add("Project:             $project");
+$output->add("Compare:             $branchTop -> $branchLow");
+$output->add("Required FixVersion: $requiredFixVersion");
+$output->add("Version in progress: $inProgress");
+$output->add("Sprint:              $activeSprintIdString");
+$output->disableDecorator();
 
 /**
  * Get issues between different code versions
  */
-$gitRoot = str_replace('\\', '/', $gitRoot);
+$gitError = false;
+$branchFound = (bool) `git --git-dir $gitRoot/.git/ branch -a --list $branchLow`;
+if (!$branchFound) {
+    $branchFound = (bool) `git --git-dir $gitRoot/.git/ tag --list $branchLow`;
+    if (!$branchFound) {
+        $output->add("ERROR: Branch or tag $branchLow not found.");
+        $gitError = true;
+    }
+}
+$branchFound = (bool) `git --git-dir $gitRoot/.git/ branch -a --list $branchTop`;
+if (!$branchFound) {
+    $branchFound = (bool) `git --git-dir $gitRoot/.git/ tag --list $branchTop`;
+    if (!$branchFound) {
+        $output->add("ERROR: Branch or tag $branchTop not found.");
+        $gitError = true;
+    }
+}
+
+if ($gitError) {
+    echo $output->getOutputString();
+    return;
+}
+
 $log = `git --git-dir $gitRoot/.git/ log $branchLow..$branchTop --oneline --no-merges`;
 preg_match_all('/' . $project . '-[0-9]+/', $log, $matches);
 $keys = array_unique($matches[0]);
 $keys = implode(', ', $keys);
-//add line separators
-$keys = preg_replace('/(([A-Za-z-0-9]+,\s*){4})/', '$1' . PHP_EOL, $keys);
-$output[] = 'Found issues in GIT: ' . PHP_EOL . $keys;
-$output[] = '===============================================';
+$keys = JiraKeysFormatter::format($keys);
+$output->add('Found issues in GIT: ' . $keys);
 
 /**
  * Connect to JIRA
@@ -71,7 +95,7 @@ JQL;
 $jqlList[] = array(
     'message' => $message,
     'jql'     => $jql,
-    'type'    => JiraJql::TYPE_WITHOUT_FIX_VERSION,
+    'type'    => JiraJql::TYPE_NOT_AFFECTS_CODE,
 );
 
 if ($requiredFixVersionInProgress) {
@@ -134,6 +158,8 @@ JQL;
  * Show found issues
  */
 $hasNoSprint = array();
+$inDifferentBranch = array();
+$found = false;
 foreach ($jqlList as $item) {
     $jql = $item['jql'];
     $showKeys = array();
@@ -151,6 +177,15 @@ foreach ($jqlList as $item) {
         //Skip build notes issue
         if (false !== strpos($issue->getSummary(), 'Build ' . $requiredFixVersion)) {
             continue;
+        }
+
+        if (JiraJql::TYPE_NOT_AFFECTS_CODE == $item['type']) {
+            $key = $issue->getKey();
+            $log = `git --git-dir $gitRoot/.git/ log --all --grep="$key"`;
+            if ($log) {
+                $inDifferentBranch[] = $key;
+                continue;
+            }
         }
 
         $fields = $issue->getFields();
@@ -218,7 +253,6 @@ foreach ($jqlList as $item) {
         $status = $issue->getStatus();
 
         $toOutput[] = <<<ISSUE
--------------------------------------------------
 Key:               {$issue->getKey()}
 Summary:           {$issue->getSummary()}
 Status:            {$status['name']}
@@ -232,21 +266,38 @@ ISSUE;
     if (!$added) {
         continue;
     }
+    $output->enableDecorator();
+    $output->add($item['message']);
+    $output->disableDecorator();
+    $keys = JiraKeysFormatter::format(implode(', ', $showKeys));
+    $output->add('Keys: ' . $keys);
 
-    $output[] = '============= ' . $item['message'] . ' =============';
-
-    $output[] = 'Keys: ' . (implode(',', $showKeys));
-
-    $output = array_merge_recursive($output, $toOutput);
+    foreach ($toOutput as $outputItem) {
+        $output->addDelimiter();
+        $output->add($outputItem);
+    }
+    $found = true;
 }
 if ($hasNoSprint) {
-    $output[] = '============= Issues did not add to active sprint =============';
-    $output[] = 'Keys: ' . (implode(',', $hasNoSprint));
+    $output->enableDecorator();
+    $output->add('NOTICE: Issues did not add to active sprint');
+    $output->disableDecorator();
+    $keys = JiraKeysFormatter::format(implode(', ', $hasNoSprint));
+    $output->add('Keys: ' . $keys);
+}
+if ($inDifferentBranch) {
+    $output->enableDecorator();
+    $output->add('WARNING!!! Issues added in different branch');
+    $output->disableDecorator();
+    $keys = JiraKeysFormatter::format(implode(', ', $inDifferentBranch));
+    $output->add('Keys: ' . $keys);
+    $found = true;
 }
 
-if (count($output) === 2) {
-    $output[] = 'Everything is OK.';
+if (!$found) {
+    $output->enableDecorator();
+    $output->add('SUCCESS! Everything is OK.');
+    $output->disableDecorator();
 }
 
-echo implode(PHP_EOL, $output);
-echo PHP_EOL;
+echo $output->getOutputString();
