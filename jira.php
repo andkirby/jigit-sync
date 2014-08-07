@@ -4,12 +4,12 @@ require_once 'jira-init.php'; //initialize
 
 $output = new JigitOutput();
 
-$version = 'v0.3.0';
+$version = 'v0.3.1';
 $inProgress = $requiredFixVersionInProgress ? 'YES' : 'NO';
 $activeSprintIdString = implode(', ', $activeSprintIds);
 
 $output->enableDecorator(true);
-$output->add('JiGIT - JIRA GIT Synchronization Tool ' . $version);
+$output->add("JiGIT $version - JIRA GIT Synchronization Tool");
 $output->add('GitHUB: https://github.com/andkirby/jigit-sync');
 $output->addDelimiter();
 $output->add("Project:             $project");
@@ -284,6 +284,7 @@ if ($hasNoSprint) {
     $output->disableDecorator();
     $keys = JiraKeysFormatter::format(implode(', ', $hasNoSprint));
     $output->add('Keys: ' . $keys);
+    $found = true;
 }
 if ($inDifferentBranch) {
     $output->enableDecorator();
