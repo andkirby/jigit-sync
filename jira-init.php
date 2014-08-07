@@ -98,10 +98,13 @@ class JigitOutput
             if ($this->_decoratorOn) {
                 $length = mb_strlen($content);
                 if (!$this->_decoratorSpaced) {
+                    $internalSymbol = $this->_decoratorDelimiterSymbol;
                     $this->_output[] =
-                        str_repeat($this->_decoratorSymbol, max(floor(($this->_decoratorWidth - $length) / 2) - 1, 0))
+                        $this->_decoratorSymbol
+                        . str_repeat($internalSymbol, max(floor(($this->_decoratorWidth - $length) / 2) - 2, 0))
                         . ' ' . $content . ' '
-                        . str_repeat($this->_decoratorSymbol, max(ceil(($this->_decoratorWidth - $length) / 2) - 1, 0));
+                        . str_repeat($internalSymbol, max(ceil(($this->_decoratorWidth - $length) / 2) - 2, 0))
+                        . $this->_decoratorSymbol;
                 } else {
                     $this->_output[] =
                         $this->_decoratorSymbol . ' ' . $content . ' '
