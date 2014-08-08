@@ -46,7 +46,6 @@ project = $project
         (issueFunction IN parentsOf("project = $project AND key IN ($keys)"))
     )
 JQL;
-echo $jql . PHP_EOL;
 //@finishSkipCommitHooks
 $jqlList[] = array(
     'message' => $message,
@@ -61,7 +60,7 @@ $jql = <<<JQL
 project = $project
     AND fixVersion = $requiredFixVersion
     AND key NOT IN ($keys)
-    AND (type IN ('Change Request', Story, Epic))
+    AND type NOT IN ('Change Request', Story, Epic)
 JQL;
 //@finishSkipCommitHooks
 $jqlList[] = array(
@@ -94,13 +93,13 @@ if ($requiredFixVersionInProgress) {
     $jql = <<<JQL
         project = $project
         AND status IN (Open, Reopened, 'In Progress')
-        AND key IN ($keys)
+        AND (fixVersion = $requiredFixVersion)
 JQL;
     //@finishSkipCommitHooks
     $jqlList[] = array(
         'message' => $message,
         'jql'     => $jql,
-        'type'    => JiraJql::TYPE_WITHOUT_OPEN_FOR_IN_PROGRESS_VERSION,
+        'type'    => JiraJql::TYPE_OPEN_FOR_IN_PROGRESS_VERSION,
     );
 
     //done issues of open parent ones for in progress version
@@ -118,7 +117,7 @@ JQL;
     $jqlList[] = array(
         'message' => $message,
         'jql'     => $jql,
-        'type'    => JiraJql::TYPE_WITHOUT_OPEN_FOR_IN_PROGRESS_VERSION,
+        'type'    => JiraJql::TYPE_OPEN_FOR_IN_PROGRESS_VERSION,
     );
 } else {
     //no affected version
@@ -148,8 +147,8 @@ JQL;
 $hasNoSprint = array();
 $inDifferentBranch = array();
 $found = false;
-foreach ($jqlList as $item) {
-    $jql = $item['jql'];
+foreach ($jqlList as $jqlItem) {
+    $jql = $jqlItem['jql'];
     $showKeys = array();
     /** @var \chobie\Jira\Api\Result $result */
     $result = $api->search($jql);
@@ -170,7 +169,7 @@ foreach ($jqlList as $item) {
         /**
          * Identify issues which not in required branch
          */
-        if (JiraJql::TYPE_NOT_AFFECTS_CODE == $item['type']) {
+        if (JiraJql::TYPE_NOT_AFFECTS_CODE == $jqlItem['type']) {
             $key = $issue->getKey();
             $log = `git --git-dir $gitRoot/.git/ log --all --grep="$key"`;
             if ($log) {
@@ -223,7 +222,7 @@ foreach ($jqlList as $item) {
         }
 
         //check fix version right?
-        if ($item['type'] === JiraJql::TYPE_WITHOUT_FIX_VERSION) {
+        if ($jqlItem['type'] === JiraJql::TYPE_WITHOUT_FIX_VERSION) {
             $fixVersions = explode(' ', trim($fixVersionsString));
             $affectedVersions = explode(' ', trim($affectedVersionsString));
             foreach ($affectedVersions as $affVer) {
@@ -239,18 +238,56 @@ foreach ($jqlList as $item) {
             }
         }
 
-        $showKeys[] = $issue->getKey();
-
         $status = $issue->getStatus();
+        $status = $status['name'];
         $type = $issue->getIssueType();
+        $type = $type['name'];
+
+        $authors = '';
+        if (JiraJql::TYPE_WITHOUT_FIX_VERSION == $jqlItem['type']
+            || JiraJql::TYPE_OPEN_FOR_IN_PROGRESS_VERSION == $jqlItem['type']
+        ) {
+            if (isset($gitKeys[$issue->getKey()])) {
+                $authors = implode(', ', array_keys($gitKeys[$issue->getKey()]['hash']));
+            } else {
+                $assignee = $issue->getAssignee();
+                $authors = $assignee['displayName'] . ' (assignee)';
+            }
+        } elseif (JiraJql::TYPE_NOT_AFFECTS_CODE == $jqlItem['type']) {
+            /**
+             * Try to find author for non-code issue
+             */
+            $issueResult = $api->getIssue($issue->getKey(), 'changelog')->getResult();
+            $issueResult['changelog'] = array_reverse($issueResult['changelog'], true);
+            foreach ($issueResult['changelog'] as $changes) {
+                if (!is_array($changes)) {
+                    continue;
+                }
+                foreach ($changes as $key => $change) {
+                    foreach ($change['items'] as $item) {
+                        if ($item['field'] == $item['field'] && $item['toString'] == 'Resolved') {
+                            $authors = $change['author']['displayName'];
+                            break 3;
+                        }
+                    }
+                }
+            }
+            if (!$authors) {
+                $assignee = $issue->getAssignee();
+                $authors = $assignee['displayName'] . ' (assignee)';
+            }
+        }
+
+        $showKeys[] = $issue->getKey();
 
         $toOutput[] = <<<ISSUE
 Key:               {$issue->getKey()}: {$issue->getSummary()}
-Type:              {$type['name']}
-Status:            {$status['name']}
+Type:              {$type}
+Status:            {$status}
 AffectedVersion/s: {$affectedVersionsString}
 FixVersion/s:      {$fixVersionsString}
 Sprint:            {$sprint}
+Author/s:          {$authors}
 ISSUE;
         $added = true;
     }
@@ -259,7 +296,7 @@ ISSUE;
         continue;
     }
     $output->enableDecorator();
-    $output->add($item['message']);
+    $output->add($jqlItem['message']);
     $output->disableDecorator();
     $keys = JiraKeysFormatter::format(implode(', ', $showKeys));
     $output->add('Keys: ' . $keys);

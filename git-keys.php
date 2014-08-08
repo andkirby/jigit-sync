@@ -27,14 +27,14 @@ if ($gitError) {
 
 $delimiter = '|@|';
 $logDelimiter = '|@||';
-$format = "%h$delimiter%s$logDelimiter";
+$format = "%h$delimiter%cn$delimiter%s$logDelimiter";
 $log = `git --git-dir $gitRoot/.git/ log $branchLow..$branchTop --pretty=format:"$format" --no-merges`;
 $log = trim($log, $logDelimiter);
 $logs = explode($logDelimiter, $log);
 foreach ($logs as $log) {
-    preg_match('/' . $project . '-[0-9]+/', $log, $matches);
-    list($hash) = explode('|@|', trim($log));
-    $keys[$matches[0]][] = $hash;
+    list($hash, $author, $message) = explode('|@|', trim($log));
+    preg_match('/' . $project . '-[0-9]+/', $message, $matches);
+    $keys[$matches[0]]['hash'][$author][] = $hash;
 }
 
 return $keys;
