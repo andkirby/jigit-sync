@@ -1,5 +1,5 @@
 <?php
-$version = 'v0.5.1';
+$version = 'v0.5.2';
 $inProgress = $requiredFixVersionInProgress ? 'YES' : 'NO';
 $activeSprintIdString = implode(', ', $activeSprintIds);
 $output->enableDecorator(true);

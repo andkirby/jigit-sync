@@ -16,6 +16,9 @@ $requiredFixVersion = ConfigUser::getJiraTargetFixVersion();
 $keys = JigitJira\KeysFormatter::format(implode(', ', array_keys($gitKeys)));
 $output->add('Found issues in GIT: ' . $keys);
 
+$notAffectsCodeResolutions = "Cancelled, 'Cannot Reproduce', Declined, Duplicate, 'Not a Bug', 'Not Actual'";
+$notAffectsCodeLabels = implode(', ', ConfigUser::getJiraNonAffectsCodeLabels());
+
 /**
  * Request problem issues
  */
@@ -49,6 +52,8 @@ $jql = <<<JQL
 project = $project
     AND fixVersion = $requiredFixVersion
     AND key NOT IN ($keys)
+    AND resolution NOT IN ($notAffectsCodeResolutions)
+    AND labels NOT IN ($notAffectsCodeLabels)
     AND type NOT IN ('Change Request', Story, Epic)
 JQL;
 //@finishSkipCommitHooks
