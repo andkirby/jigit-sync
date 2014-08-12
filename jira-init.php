@@ -1,230 +1,42 @@
 <?php
-require_once 'jira-common.php'; //request settings
-require_once 'jira-password.php'; //get jiraPassword
+/**
+ * Define app root
+ */
+!defined('JIGIT_ROOT') && define('JIGIT_ROOT', __DIR__);
 
+/**
+ * Define include paths
+ */
 $includePaths = array(
     get_include_path(),
     realpath(__DIR__ . '/../jira-api-restclient/src'),
 );
 set_include_path(implode(PATH_SEPARATOR, $includePaths));
 
-spl_autoload_register('JigitAutoload::mageAutoload');
+/**
+ * Initialize autoloader
+ */
+require_once JIGIT_ROOT . '/Jigit/Autoloader.php';
+spl_autoload_register('\Jigit\Autoloader::autoload');
 
 /**
- * Class JiraAutoload
+ * Init config
  */
-class JigitAutoload
-{
-    /**
-     * Autoload
-     *
-     * @param string $class
-     * @return void
-     */
-    static public function mageAutoload($class)
-    {
-        $file = str_replace('_', '/', $class) . '.php';
-        $file = str_replace('\\', '/', $file);
-        $file = str_replace('chobie/', '/', $file); //chobie namespace doesn't exist in the path
-        require_once $file;
-    }
-}
+\Jigit\Config::getInstance();
 
 /**
- * Output collector class
+ * Get user data
  */
-class JigitOutput
-{
-    /**
-     * Output rows
-     *
-     * @var array
-     */
-    protected $_output = array();
+require_once JIGIT_ROOT . '/jira-common.php'; //request settings
 
-    /**
-     * Output line delimiter
-     *
-     * @var string
-     */
-    protected $_outputDelimiter = PHP_EOL;
+use \Jigit\Config\User as ConfigUser;
 
-    /**
-     * Decorator mode
-     *
-     * @var bool
-     */
-    protected $_decoratorOn = false;
-
-    /**
-     * Decorator spaced mode
-     *
-     * @var bool
-     */
-    protected $_decoratorSpaced = false;
-
-    /**
-     * Decorator block with
-     *
-     * @var int
-     */
-    protected $_decoratorWidth = 80;
-
-    /**
-     * Decorator symbol
-     *
-     * @var string
-     */
-    protected $_decoratorSymbol = '=';
-
-    /**
-     * Decorator symbol
-     *
-     * @var string
-     */
-    protected $_decoratorDelimiterSymbol = '-';
-
-    /**
-     * Add output row
-     *
-     * @param string $content       Content string
-     * @param string $delimiter     Delimiter of a multi-row value
-     * @return $this
-     */
-    public function add($content, $delimiter = PHP_EOL)
-    {
-        $contents = explode($delimiter, $content);
-        foreach ($contents as $content) {
-            $content = $this->_decorateRow($content);
-            $this->_output[] = (string) $content;
-        }
-        return $this;
-    }
-
-    /**
-     * Enable decorate mode
-     *
-     * @param bool $spaced
-     * @param bool $skipDelimiter
-     * @return $this
-     */
-    public function enableDecorator($spaced = false, $skipDelimiter = false)
-    {
-        if ($this->_decoratorOn) {
-            return $this;
-        }
-        if (!$skipDelimiter) {
-            $row                    = str_repeat($this->_decoratorSymbol, $this->_decoratorWidth);
-            $this->_output[]        = $row;
-        }
-        $this->_decoratorOn     = true;
-        $this->_decoratorSpaced = (bool)$spaced;
-        return $this;
-    }
-
-    /**
-     * Add decorated delimiter
-     *
-     * @return $this
-     */
-    public function addDelimiter()
-    {
-        if ($this->_decoratorOn) {
-            $row = $this->_decoratorSymbol
-                . str_repeat($this->_decoratorDelimiterSymbol, $this->_decoratorWidth - 2)
-                . $this->_decoratorSymbol;
-        } else {
-            $row = str_repeat($this->_decoratorDelimiterSymbol, $this->_decoratorWidth);
-        }
-        $this->_output[] = $row;
-        return $this;
-    }
-
-    /**
-     * Disable decorate mode
-     *
-     * @return $this
-     */
-    public function disableDecorator()
-    {
-        if (!$this->_decoratorOn) {
-            return $this;
-        }
-        $row                    = str_repeat($this->_decoratorSymbol, $this->_decoratorWidth);
-        $this->_output[]        = $row;
-        $this->_decoratorOn     = false;
-        $this->_decoratorSpaced = false;
-        return $this;
-    }
-
-    /**
-     * Get output string
-     *
-     * @return string
-     */
-    public function getOutputString()
-    {
-        return implode($this->_outputDelimiter, $this->_output) . $this->_outputDelimiter;
-    }
-
-    /**
-     * Decorate content string
-     *
-     * @param string $content
-     * @return string
-     */
-    protected function _decorateRow($content)
-    {
-        if ($this->_decoratorOn) {
-            $length = mb_strlen($content);
-            if (!$this->_decoratorSpaced) {
-                $internalSymbol = $this->_decoratorDelimiterSymbol;
-                $output = $this->_decoratorSymbol
-                    . str_repeat($internalSymbol, max(floor(($this->_decoratorWidth - $length) / 2) - 2, 0))
-                    . ' ' . $content . ' '
-                    . str_repeat($internalSymbol, max(ceil(($this->_decoratorWidth - $length) / 2) - 2, 0))
-                    . $this->_decoratorSymbol;
-            } else {
-                $output = $this->_decoratorSymbol . ' ' . $content . ' '
-                    . str_repeat(' ', max(($this->_decoratorWidth - $length) - 5, 0)) . ' '
-                    . $this->_decoratorSymbol;
-            }
-        } else {
-            $output = (string)$content;
-        }
-        return $output;
-    }
-}
-
-/**
- * Class with JQL query types
- */
-class JiraJql
-{
-    /**#@+
-     * Query types
-     */
-    const TYPE_NOT_AFFECTS_CODE                     = 'notAffectsCodeWithFixVersion';
-    const TYPE_WITHOUT_FIX_VERSION                  = 'inBranchWithoutFixVersion';
-    const TYPE_WITHOUT_AFFECTED_VERSION             = 'inBranchWithoutAffectedVersion';
-    const TYPE_OPEN_FOR_IN_PROGRESS_VERSION         = 'inBranchWithoutFixVersionNotDone';
-    const TYPE_PARENT_HAS_COMMIT                    = 'parentIssueHasCommit';
-    /**#@-*/
-}
-
-/**
- * Class JIRA keys formatter
- */
-class JiraKeysFormatter
-{
-    /**
-     * @param string $keys
-     * @param int    $count     Number keys in line
-     * @param string $delimiter
-     * @return mixed
-     */
-    static public function format($keys, $count = 4, $delimiter = PHP_EOL)
-    {
-        return preg_replace('/(([A-Za-z-0-9]+,\s*){' . $count . '})/', '$1' . $delimiter, $keys);
-    }
-}
+ConfigUser::setJiraUsername($jiraUser);
+ConfigUser::setJiraUrl($jiraUrl);
+ConfigUser::setJiraProject($project);
+ConfigUser::setGitBranchTop($branchTop);
+ConfigUser::setGitBranchLow($branchLow);
+ConfigUser::setJiraTargetFixVersion($requiredFixVersion);
+ConfigUser::setJiraTargetFixVersionInProgress($requiredFixVersionInProgress);
+ConfigUser::setJiraActiveSprints($activeSprintIds);
+ConfigUser::setProjectGitRoot($gitRoot);
