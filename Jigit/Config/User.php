@@ -178,7 +178,7 @@ class User extends Config
     /**
      * Get JIRA active sprints
      *
-     * @return string
+     * @return array
      */
     static public function getJiraActiveSprints()
     {
@@ -188,11 +188,14 @@ class User extends Config
     /**
      * Set JIRA active sprints
      *
-     * @param string $value
+     * @param array|string|int $value
      * @return Config
      */
     static public function setJiraActiveSprints($value)
     {
+        if (!is_array($value)) {
+            $value = array($value);
+        }
         return self::getInstance()->setData('jira_active_sprints', $value);
     }
 
@@ -203,7 +206,7 @@ class User extends Config
      */
     static public function getProjectGitRoot()
     {
-        return self::getInstance()->getData('project_git_root');
+        return rtrim(self::getInstance()->getData('project_git_root'), '\\/');
     }
 
     /**
@@ -216,4 +219,14 @@ class User extends Config
     {
         return self::getInstance()->setData('project_git_root', $value);
     }
-} 
+
+    /**
+     * Set project GIT root
+     *
+     * @return array
+     */
+    static public function getJiraNonAffectsCodeLabels()
+    {
+        return array('nocode', 'fixedIn');
+    }
+}

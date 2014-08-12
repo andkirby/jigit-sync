@@ -2,6 +2,8 @@
 /**
  * Get issues between different code versions
  */
+use \Jigit\Config\User as ConfigUser;
+
 $gitError = false;
 $branchFound = (bool) `git --git-dir $gitRoot/.git/ branch -a --list $branchLow`;
 if (!$branchFound) {
@@ -28,6 +30,7 @@ if ($gitError) {
 $delimiter = '|@|';
 $logDelimiter = '|@||';
 $format = "%h$delimiter%cn$delimiter%s$logDelimiter";
+$gitRoot = ConfigUser::getProjectGitRoot();
 $log = `git --git-dir $gitRoot/.git/ log $branchLow..$branchTop --pretty=format:"$format" --no-merges`;
 $log = trim($log, $logDelimiter);
 $logs = explode($logDelimiter, $log);
