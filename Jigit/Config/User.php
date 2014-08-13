@@ -232,6 +232,7 @@ class User extends Config
     /**
      * Set project GIT root
      *
+     * @deprecated
      * @return array
      */
     static public function getJiraNonAffectsCodeLabels()

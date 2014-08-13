@@ -8,6 +8,11 @@
 
 namespace Jigit;
 
+/**
+ * Class Config
+ *
+ * @package Jigit
+ */
 class Config
 {
     /**
@@ -57,15 +62,19 @@ class Config
     }
 
     /**
-     * Set data item
+     * Set data
      *
-     * @param string $key
-     * @param string $value
+     * @param string|array $key
+     * @param mixed $value
      * @return $this
      */
-    public function setData($key, $value)
+    public function setData($key, $value = null)
     {
-        $this->_data[$key] = $value;
+        if (is_array($key)) {
+            $this->_data = $key;
+        } else {
+            $this->_data[$key] = $value;
+        }
         return $this;
     }
 } 
