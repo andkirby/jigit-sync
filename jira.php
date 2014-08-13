@@ -15,6 +15,9 @@ try {
 
     $gitKeys       = require_once 'git-keys.php';
     $gitKeysString = implode(',', array_keys($gitKeys));
+    $output->add('Found issues in GIT:');
+    $output->add(JigitJira\KeysFormatter::format($gitKeysString, 7));
+
     Config::getInstance()->setData('jira_git_keys', $gitKeysString);
 
     /**
