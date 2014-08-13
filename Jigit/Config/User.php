@@ -8,7 +8,9 @@
 
 namespace Jigit\Config;
 use \Jigit\Config as Config;
+use Jigit\Exception;
 use \Jigit\Jira\Password as Password;
+use Jigit\UserException;
 
 /**
  * Class User
@@ -212,12 +214,19 @@ class User extends Config
     /**
      * Set project GIT root
      *
-     * @param string $value
+     * @param string $path
      * @return Config
+     * @throws \Jigit\UserException
      */
-    static public function setProjectGitRoot($value)
+    static public function setProjectGitRoot($path)
     {
-        return self::getInstance()->setData('project_git_root', $value);
+        if (!file_exists($path) || !is_readable($path)) {
+            throw new UserException("Directory '$path' is not exists or not readable.");
+        }
+        if (!file_exists($path . '/.git') || !is_readable($path . '/.git')) {
+            throw new UserException("Git directory '$path' is not exists or not readable.");
+        }
+        return self::getInstance()->setData('project_git_root', $path);
     }
 
     /**
@@ -228,5 +237,26 @@ class User extends Config
     static public function getJiraNonAffectsCodeLabels()
     {
         return array('nocode', 'fixedIn');
+    }
+
+    /**
+     * Set project GIT root
+     *
+     * @param null|string $key
+     * @return mixed
+     */
+    static public function getJiraConfig($key = null)
+    {
+        if ($key) {
+            return self::getInstance()->getData('jira_' . $key);
+        } else {
+            $config = array();
+            foreach(self::getInstance()->getData() as $key => $value) {
+                if (strpos($key, 'jira_')) {
+                    $config[$key] = $value;
+                }
+            }
+            return $config;
+        }
     }
 }
