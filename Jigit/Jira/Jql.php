@@ -40,11 +40,18 @@ class Jql
         foreach ($jqls as &$item) {
             $jql = &$item['jql'];
             $jql = str_replace('%project%', ConfigUser::getJiraProject(), $jql);
-            $jql = str_replace('%notAffectsCodeResolutions%', $this->_getJqlSettings('notAffectsCodeResolutions'), $jql);
-            $jql = str_replace('%notAffectsCodeLabels%', $this->_getJqlSettings('notAffectsCodeResolutions'), $jql);
+            $jql = str_replace(
+                '%notAffectsCodeResolutions%',
+                $this->_getJqlSettings('notAffectsCodeResolutions'), $jql
+            );
+            $jql = str_replace('%notAffectsCodeLabels%', $this->_getJqlSettings('notAffectsCodeLabels'), $jql);
             $jql = str_replace('%keys%', ConfigUser::getJiraConfig('git_keys'), $jql);
             $jql = str_replace('%targetFixVersion%', ConfigUser::getJiraTargetFixVersion(), $jql);
             $jql = str_replace('%activeSprints%', implode(',', ConfigUser::getJiraActiveSprints()), $jql);
+            $defaultJql = $this->_getJqlSettings('default_jql');
+            if ($defaultJql) {
+                $jql .= ' AND (' . $defaultJql . ')';
+            }
         }
         return $jqls;
     }
@@ -59,7 +66,9 @@ class Jql
     {
         $csv = new Jql\Reader\Csv();
         if (null === $this->_settings) {
-            $this->_settings = $csv->toArray(JIGIT_ROOT . '/jqls-settings.csv');
+            $this->_settings = $csv->toAssocArray(JIGIT_ROOT . '/jqls-settings.csv');
+            $custom          = $csv->toAssocArray(JIGIT_ROOT . '/jqls-settings-local.csv');
+            $this->_settings = array_merge_recursive($this->_settings, $custom);
         }
         return isset($this->_settings[$key]) ? $this->_settings[$key] : null;
     }
