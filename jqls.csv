@@ -1,0 +1,40 @@
+jql,message,type,in_progress
+"project = %project%
+    AND (
+        (fixVersion != %targetFixVersion% OR fixVersion is EMPTY)
+        AND status NOT IN (Open, Reopened, 'In Progress')
+    )
+    AND (
+        (key IN (%keys%) AND type NOT IN ('Sub-Task Task'))
+        OR
+        (issueFunction IN parentsOf(""project = %project% AND key IN (%keys%)""))
+    )
+",Has no fix version.,inBranchWithoutFixVersion,-1
+"project = %project%
+    AND fixVersion = %targetFixVersion%
+    AND key NOT IN (%keys%)
+    AND resolution NOT IN (%notAffectsCodeResolutions%)
+    AND labels NOT IN (%notAffectsCodeLabels%)
+    AND type NOT IN ('Change Request', Story, Epic)",Issues which did not affect the code.,notAffectsCodeWithFixVersion,-1
+"project = %project%
+    AND fixVersion = %targetFixVersion%
+    AND key IN (%keys%)
+    AND (type IN ('Change Request', Story, Epic) OR and issueFunction IN hasSubtasks())",Parent issue has commit.,parentIssueHasCommit,-1
+"project = %project%
+AND status IN (Open, Reopened, 'In Progress')
+AND (fixVersion = %targetFixVersion%)","Open issues for ""in progress"" fix version.",openWithFixVersion,1
+"project = %project%
+AND status IN (Open, Reopened, 'In Progress')
+AND issueFunction IN parentsOf(
+    ""project = %project% AND status NOT IN (Open, Reopened, 'In Progress') AND key IN (%keys%)""
+)","Open TOP issues for ""in progress"" fix version.",openTopForInProgressVersion,1
+"project = %project%
+AND (
+    (affectedVersion != %targetFixVersion OR affectedVersion is EMPTY)
+    AND status IN (Open, Reopened, 'In Progress')
+)
+AND type NOT IN ('Sub-Task Task', 'Sub-Task Question')
+AND key IN (%keys%)",Has no affected version.,inBranchWithoutAffectedVersion,0
+"project = %project%
+(AND Sprint NOT IN (%activeSprints%) OR Sprint IS EMPTY)
+AND key IN (%keys%)",Not added to sprint,notInSprint,1

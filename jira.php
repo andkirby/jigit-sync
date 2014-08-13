@@ -4,6 +4,7 @@ require_once 'jira-init.php'; //initialize
 use \Jigit\Output as Output;
 use \Jigit\Jira as JigitJira;
 use \Jigit\Config\User as ConfigUser;
+use \Jigit\Config;
 use \chobie\Jira as Jira;
 
 $output = new Output();
@@ -12,6 +13,8 @@ require_once 'jira-header.php'; //get header content
 require_once 'jira-request.php'; //get request content
 
 $gitKeys = require_once 'git-keys.php';
+$gitKeysString = implode(',', array_keys($gitKeys));
+Config::getInstance()->setData('jira_git_keys', $gitKeysString);
 
 /**
  * Connect to JIRA
@@ -23,7 +26,8 @@ $api = new Jira\Api(
     )
 );
 
-$jqlList = require_once 'jira-jql.php'; //get JQLs
+$jqls = new JigitJira\Jql();
+$jqlList = $jqls->getJqls();
 
 /**
  * Show found issues
@@ -33,6 +37,11 @@ $inDifferentBranch = array();
 $found = false;
 foreach ($jqlList as $jqlItem) {
     $jql = $jqlItem['jql'];
+    if (ConfigUser::getJiraTargetFixVersionInProgress() && '1' !== $jqlItem['in_progress']
+        || !ConfigUser::getJiraTargetFixVersionInProgress() && '0' !== $jqlItem['in_progress']
+    ) {
+        continue;
+    }
     $showKeys = array();
     /** @var Jira\Api\Result $result */
     $result = $api->search($jql);
@@ -88,22 +97,13 @@ foreach ($jqlList as $jqlItem) {
             if ($matches[2]) {
                 //get sprint ID
                 $sprint .= $matches[2][0];
-                if (!in_array($matches[2][0], $activeSprintIds)) {
-                    //an issue has wrong sprint
-                    $hasNoSprint[] = $issue->getKey();
-                }
             } else {
-                //an issue has no sprint
-                $hasNoSprint[] = $issue->getKey();
                 $sprint .= '0';
             }
             if ($matches[1]) {
                 //get sprint name
                 $sprint .= ', ' . $matches[1][0];
             }
-        } else {
-            //an issue has no sprint
-            $hasNoSprint[] = $issue->getKey();
         }
 
         //check fix version right?
@@ -190,14 +190,6 @@ ISSUE;
         $output->addDelimiter();
         $output->add($outputItem);
     }
-    $found = true;
-}
-if ($hasNoSprint) {
-    $output->enableDecorator();
-    $output->add('NOTICE: Issues did not add to active sprint');
-    $output->disableDecorator();
-    $keys = JigitJira\KeysFormatter::format(implode(', ', $hasNoSprint));
-    $output->add('Keys: ' . $keys);
     $found = true;
 }
 if ($inDifferentBranch) {
