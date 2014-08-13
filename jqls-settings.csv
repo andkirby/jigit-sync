@@ -1,4 +1,4 @@
-code,jql
-notAffectCodeStatuses,"""Cancelled, 'Cannot Reproduce', Declined, Duplicate, 'Not a Bug', 'Not Actual'"""
-notAffectCodeLabels,"'nocode', 'fixedIn'
+name,value
+notAffectsCodeResolutions,"Cancelled, 'Cannot Reproduce', Declined, Duplicate, 'Not a Bug', 'Not Actual'"
+notAffectCodeLabels,"nocode, fixedIn
 "
