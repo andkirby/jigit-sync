@@ -1,5 +1,6 @@
 # Created by .gitignore support plugin (hsz.mobi)
+config/project.ini
+config/jira-connect.ini
 atlassian-ide-plugin.xml
-jira-common.php
-jira.password
+config/jira.password
 .idea

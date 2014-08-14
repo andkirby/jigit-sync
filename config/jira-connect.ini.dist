@@ -1,0 +1,6 @@
+[main]
+jira_user = username
+jira_url  = http://jira.example.com
+;[SOMEPROJECT]
+;jira_user = username
+;jira_url  = http://jira-another.example.com
