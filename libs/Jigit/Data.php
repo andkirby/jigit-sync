@@ -2,26 +2,19 @@
 /**
  * Created by PhpStorm.
  * User: kirby
- * Date: 12.08.2014
- * Time: 3:47
+ * Date: 8/15/2014
+ * Time: 12:36 PM
  */
 
 namespace Jigit;
 
 /**
- * Class Config
+ * Data object
  *
  * @package Jigit
  */
-class Config
+class Data
 {
-    /**
-     * Instance
-     *
-     * @var Config
-     */
-    static protected $_instance;
-
     /**
      * Data
      *
@@ -30,23 +23,10 @@ class Config
     protected $_data = array();
 
     /**
-     * Get instance
-     *
-     * @return Config
-     */
-    static public function getInstance()
-    {
-        if (null === self::$_instance) {
-            self::$_instance = new self();
-        }
-        return self::$_instance;
-    }
-
-    /**
      * Get data by key
      *
      * @param string $key
-     * @return null
+     * @return mixed
      */
     public function getData($key = null)
     {
@@ -77,4 +57,4 @@ class Config
         }
         return $this;
     }
-} 
+}

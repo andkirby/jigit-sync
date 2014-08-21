@@ -81,11 +81,15 @@ class Password
     }
 
     /**
+     * Is Windows?
+     *
      * @return bool
      */
     protected function _isWindows()
     {
+        //@startSkipCommitHooks
         return isset($_SERVER['WINDIR']) && $_SERVER['WINDIR'];
+        //@finishSkipCommitHooks
     }
 
     /**
@@ -180,7 +184,7 @@ class Password
      */
     protected function _getPasswordFile()
     {
-        return JIGIT_ROOT . '/jira.password';
+        return JIGIT_ROOT . '/config/jira.password';
     }
 
     /**
@@ -233,7 +237,9 @@ class Password
     }
 
     /**
-     * @param $password
+     * Encrypt password
+     *
+     * @param string $password
      * @return array
      */
     protected function _encryptPassword($password)

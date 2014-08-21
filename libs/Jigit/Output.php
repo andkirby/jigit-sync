@@ -7,6 +7,11 @@
  */
 namespace Jigit;
 
+/**
+ * Class Output
+ *
+ * @package Jigit
+ */
 class Output
 {
     /**

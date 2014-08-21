@@ -21,7 +21,7 @@ class Csv
      * @param string $filename
      * @return array
      */
-    function toArray($filename)
+    public function toArray($filename)
     {
         return $this->_parse($filename);
     }
@@ -32,7 +32,7 @@ class Csv
      * @param string $filename
      * @return array
      */
-    function toAssocArray($filename)
+    public function toAssocArray($filename)
     {
         return $this->_parse($filename, true);
     }
@@ -70,4 +70,4 @@ class Csv
         }
         return $data;
     }
-} 
+}

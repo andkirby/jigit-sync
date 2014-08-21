@@ -15,9 +15,14 @@ namespace Jigit\Jira;
  */
 class KeysFormatter
 {
+    /**
+     * Count items in row
+     */
     const DEFAULT_KEYS_COUNT = 5;
 
     /**
+     * Format heys
+     *
      * @param string $keys
      * @param int    $count     Number keys in line
      * @param string $delimiter

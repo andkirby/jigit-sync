@@ -15,4 +15,4 @@ namespace Jigit\Jira\Jql;
  */
 interface ItemInterface
 {
-} 
+}

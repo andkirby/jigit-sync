@@ -9,10 +9,10 @@
 namespace Jigit;
 
 /**
- * User exception
+ * Developer exception
  *
  * @package Jigit
  */
-class UserException extends \Exception
+class Exception extends \Exception
 {
-} 
+}

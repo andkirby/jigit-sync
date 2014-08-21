@@ -15,4 +15,4 @@ namespace Jigit\Jira\Jql;
  */
 class Item implements ItemInterface
 {
-} 
+}

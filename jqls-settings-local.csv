@@ -1,1 +1,2 @@
-default_jql,"(labels NOT IN (QA_hours) OR labels is EMPTY)"
+jql_default,""
+jql_default2,"AND ('Epic Link' is EMPTY OR "Epic Link" NOT IN (HAS-319))"
