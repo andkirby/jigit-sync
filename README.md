@@ -19,13 +19,12 @@ If you have build notes issue please use following format in summary: Build %req
 Example:
 
     php jira.php p=has low=v1.0.12 top=origin/hotfix/1.0.14 i=1 ver=v1.0.14
-
-   p        - Project key.
-   low      - VCS low branch/tag.
-   top      - Target VCS branch/tag.
-   i        - Version "In progress" status.
-   v        - Version name.
-   debug    - Version name.
+    p        - Project key.
+    low      - VCS low branch/tag.
+    top      - Target VCS branch/tag.
+    i        - Version "In progress" status.
+    v        - Version name.
+    debug    - Version name.
 
 ### Fast Install
 
