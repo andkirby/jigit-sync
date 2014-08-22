@@ -24,7 +24,7 @@ Example:
     top      - Target VCS branch/tag.
     i        - Version "In progress" status.
     v        - Version name.
-    debug    - Version name.
+    debug    - Debug mode.
 
 ### Fast Install
 
