@@ -9,15 +9,23 @@ This project designed to make synchronization between code under GIT and JIRA is
 - GIT commit messages must have related issue key.
 
 Fixed PRJ-123: Some issue summary
-- This application requires jira-api-restclient 
+- This application requires jira-api-restclient
 (https://github.com/chobie/jira-api-restclient.git).
 
 ### Build Notes in Issue
 If you have build notes issue please use following format in summary: Build %required_fix_version%
 
-### Important
-Windows only.
-Application works with Windows (it used unique Windows ID as a key to encrypt a password by simple script).
+### CLI keys
+Example:
+
+    php jira.php p=has low=v1.0.12 top=origin/hotfix/1.0.14 i=1 ver=v1.0.14
+
+   p        - Project key.
+   low      - VCS low branch/tag.
+   top      - Target VCS branch/tag.
+   i        - Version "In progress" status.
+   v        - Version name.
+   debug    - Version name.
 
 ### Fast Install
 
