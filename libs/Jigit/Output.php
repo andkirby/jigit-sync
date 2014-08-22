@@ -72,7 +72,11 @@ class Output
      */
     public function add($content, $delimiter = PHP_EOL)
     {
-        $contents = explode($delimiter, $content);
+        if (is_array($content)) {
+            $contents = $content;
+        } else {
+            $contents = explode($delimiter, $content);
+        }
         foreach ($contents as $content) {
             $content = $this->_decorateRow($content);
             $this->_output[] = (string) $content;

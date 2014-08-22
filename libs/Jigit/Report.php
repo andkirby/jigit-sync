@@ -160,14 +160,15 @@ class Report
                 }
 
                 $showKeys[] = $issue->getKey();
-
-                $toOutput[] = "Key:               {$issue->getKey()}: {$issue->getSummary()}";
-                $toOutput[] = "Type:              {$type}";
-                $toOutput[] = "AffectedVersion/s: {$affectedVersionsString}";
-                $toOutput[] = "FixVersion/s:      {$fixVersionsString}";
-                $toOutput[] = "Status:            {$status}";
-                $toOutput[] = "Sprint:            {$sprint}";
-                $toOutput[] = "Author/s:          {$authors}";
+                $strIssue = array();
+                $strIssue[] = "Key:               {$issue->getKey()}: {$issue->getSummary()}";
+                $strIssue[] = "Type:              {$type}";
+                $strIssue[] = "AffectedVersion/s: {$affectedVersionsString}";
+                $strIssue[] = "FixVersion/s:      {$fixVersionsString}";
+                $strIssue[] = "Status:            {$status}";
+                $strIssue[] = "Sprint:            {$sprint}";
+                $strIssue[] = "Author/s:          {$authors}";
+                $toOutput[] = $strIssue;
 
                 $added = true;
             }
