@@ -12,11 +12,13 @@ $output = new Output();
 try {
     //@startSkipCommitHooks
     parse_str(implode('&', array_slice($argv, 1)), $_GET);
-    $project = isset($_GET['p']) ? $_GET['p'] : null;
+    reset($_GET);
+    $action = key($_GET);
+    unset($_GET[$action]);
     $runner = new App\Run();
     $runner->setOutput($output);
     $runner->setDebugMode(isset($_GET['debug']) ? $_GET['debug'] : false);
-    $runner->run($project, $_GET);
+    $runner->run($action, $_GET);
     //@finishSkipCommitHooks
 } catch (UserException $e) {
     if ($e->getCode() != 911) {

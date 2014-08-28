@@ -8,6 +8,7 @@
 
 namespace App;
 use \Jigit\Config;
+use Jigit\Exception;
 use \Jigit\Output;
 use \Jigit\Report;
 use \Jigit\Git;
@@ -23,6 +24,13 @@ use Jigit\UserException;
  */
 class Run
 {
+    /**#@+
+     * Action names
+     */
+    const ACTION_REPORT = 'report';
+    const ACTION_PUSH_TASKS = 'push-tasks';
+    /**#@-*/
+
     /**
      * Project key in JIRA
      *
@@ -31,35 +39,67 @@ class Run
     protected $_project;
 
     /**
+     * Available actions
+     *
+     * @var string
+     */
+    protected $_availableActions;
+
+    /**
+     * Current action verb
+     *
+     * @var string
+     */
+    protected $_action;
+
+    /**
+     * Set actions
+     */
+    public function __construct()
+    {
+        $this->_availableActions = array(
+            self::ACTION_REPORT,
+            self::ACTION_PUSH_TASKS,
+        );
+    }
+
+    /**
      * Run making report
      *
-     * @param string $project
+     * @param string $action
      * @param array  $params
+     * @throws \Jigit\Exception
      * @throws \Jigit\UserException
      */
-    public function run($project, array $params)
+    public function run($action, array $params)
     {
+        $this->_setAction($action);
+        $this->_setProject(@$params['p']);
         $this->_initConfig();
-        $this->_setProject($project);
         $this->_setJiraConfig();
         $this->_setProjectConfig();
-
-        $this->setParams($params);
+        $this->_setParams($params);
 
         $this->_setHeaderOutput();
-        $this->_setProjectInfoOutput($project);
-        $gitKeys = $this->_getGitKeys();
-        $gitKeysString = implode(',', array_keys($gitKeys));
+        $this->_setProjectInfoOutput();
 
-        Config::addDebug($gitKeysString);
+        $this->_processAction();
+    }
 
-        $this->getOutput()->add('Found issues in GIT:');
-        $this->getOutput()->add(JigitJira\KeysFormatter::format($gitKeysString, 7));
-
-        $jqlList = $this->_getJqls($gitKeysString);
-
-        $report = new Report();
-        $report->make($this->_getApi(), $jqlList);
+    /**
+     * Set action verb
+     *
+     * @param string $action
+     * @return $this
+     * @throws \Jigit\UserException
+     */
+    protected function _setAction($action)
+    {
+        if (!in_array($action, $this->_availableActions)) {
+            throw new UserException('Proper action is not set.');
+        }
+        $this->_action = $action;
+        return $this;
     }
 
     /**
@@ -120,7 +160,7 @@ class Run
      * @return $this
      * @throws \Jigit\UserException
      */
-    public function setParams(array $params)
+    protected function _setParams(array $params)
     {
         if (isset($params['low'])) {
             Config\Project::setGitBranchLow($params['low']);
@@ -277,6 +317,10 @@ class Run
     {
         //@startSkipCommitHooks
         return <<<STR
+    [action] - First verb in command.
+               Available actions:
+               report     - make report to identify problems.
+               push-tasks - pushed tasks to done which added to a given version.
     p        - Project key.
     low      - VCS low branch/tag.
     top      - Target VCS branch/tag.
@@ -285,5 +329,32 @@ class Run
     debug    - Debug mode.
 STR;
         //@finishSkipCommitHooks
+    }
+
+    /**
+     * Process request by action verb
+     *
+     * @throws \Jigit\Exception
+     */
+    protected function _processAction()
+    {
+        if (self::ACTION_REPORT == $this->_action) {
+            $gitKeys       = $this->_getGitKeys();
+            $gitKeysString = implode(',', array_keys($gitKeys));
+
+            Config::addDebug($gitKeysString);
+
+            $this->getOutput()->add('Found issues in GIT:');
+            $this->getOutput()->add(JigitJira\KeysFormatter::format($gitKeysString, 7));
+
+            $jqlList = $this->_getJqls($gitKeysString);
+
+            $report = new Report();
+            $report->make($this->_getApi(), $jqlList);
+        } elseif (self::ACTION_PUSH_TASKS == $this->_action) {
+            throw new Exception('Not implemented.');
+        } else {
+            throw new Exception('Invalid action.');
+        }
     }
 }
