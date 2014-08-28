@@ -19,7 +19,10 @@ try {
     $runner->run($project, $_GET);
     //@finishSkipCommitHooks
 } catch (UserException $e) {
-    $output->add('ERROR: ' . $e->getMessage());
+    if ($e->getCode() != 911) {
+        //skip help exception
+        $output->add('ERROR: ' . $e->getMessage());
+    }
 } catch (Exception $e) {
     $output->add('FATAL: ' . $e);
     echo $output->getOutputString();

@@ -118,6 +118,7 @@ class Run
      *
      * @param array $params
      * @return $this
+     * @throws \Jigit\UserException
      */
     public function setParams(array $params)
     {
@@ -132,6 +133,12 @@ class Run
         }
         if (isset($params['i'])) {
             Config\Project::setJiraTargetFixVersionInProgress($params['i']);
+        }
+        if (isset($params['h'])) {
+            $str = $this->getHelp();
+            $this->getOutput()->add($str);
+            //todo Refactor code to avoid trowing exception
+            throw new UserException('Help', 911);
         }
         return $this;
     }
@@ -240,6 +247,7 @@ class Run
     protected function _setProject($project)
     {
         if (!$project) {
+            $this->getOutput()->add($this->getHelp());
             throw new UserException('Please set project.');
         }
 
@@ -258,5 +266,24 @@ class Run
     {
         Config::getInstance()->setData('debug_mode', $flag);
         return $this;
+    }
+
+    /**
+     * Get help string
+     *
+     * @return string
+     */
+    public function getHelp()
+    {
+        //@startSkipCommitHooks
+        return <<<STR
+    p        - Project key.
+    low      - VCS low branch/tag.
+    top      - Target VCS branch/tag.
+    i        - Version \"In progress\" status.
+    v        - Version name.
+    debug    - Debug mode.
+STR;
+        //@finishSkipCommitHooks
     }
 }
