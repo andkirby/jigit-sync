@@ -8,13 +8,15 @@
 
 namespace Jigit;
 use \Jigit\Config;
+use \Jigit\Vcs\InterfaceVcs;
+use \Jigit\Dispatcher\InterfaceDispatcher;
 
 /**
  * GIT adapter
  *
  * @package Jigit
  */
-class Git
+class Git implements InterfaceVcs
 {
     /**#@+
      * Log delimiters
@@ -22,6 +24,13 @@ class Git
     const LOG_PARAM_DELIMITER = '|@|';
     const LOG_DELIMITER = '|@||';
     /**#@-*/
+
+    /**
+     * Dispatcher
+     *
+     * @var InterfaceDispatcher
+     */
+    protected $_dispatcher;
 
     /**
      * Get JIRA keys from range
@@ -39,8 +48,8 @@ class Git
         $gitRoot = Config\Project::getProjectGitRoot();
         $project = Config\Project::getJiraProject();
 
-        $this->_isBranchValid($gitRoot, $branchLow);
-        $this->_isBranchValid($gitRoot, $branchTop);
+        $this->isBranchValid($gitRoot, $branchLow);
+        $this->isBranchValid($gitRoot, $branchTop);
 
         $format = $this->_getLogFormat();
         $gitRoot = Config\Project::getProjectGitRoot();
@@ -60,7 +69,7 @@ class Git
      * @param string $command
      * @return mixed
      */
-    protected function _run($command)
+    static public function run($command)
     {
         Config::addDebug('GIT command: ' . $command);
         return `$command`;
@@ -147,12 +156,12 @@ class Git
      * @return bool
      * @throws UserException
      */
-    protected function _isBranchValid($gitRoot, $branch)
+    public function isBranchValid($gitRoot, $branch)
     {
         //@startSkipCommitHooks
-        $branchFound = (bool)$this->_run("git --git-dir $gitRoot/.git/ branch -a --list $branch");
+        $branchFound = (bool)$this->run("git --git-dir $gitRoot/.git/ branch -a --list $branch");
         if (!$branchFound) {
-            $branchFound = (bool)$this->_run("git --git-dir $gitRoot/.git/ tag --list $branch");
+            $branchFound = (bool)$this->run("git --git-dir $gitRoot/.git/ tag --list $branch");
             if (!$branchFound) {
                 throw new UserException("Branch or tag $branch not found.");
             }
@@ -185,10 +194,48 @@ class Git
     protected function _getLog($gitRoot, $branchLow, $branchTop, $format)
     {
         //@startSkipCommitHooks
-        $log = $this->_run(
+        $log = $this->run(
             "git --git-dir $gitRoot/.git/ log $branchLow..$branchTop --pretty=format:\"$format\" --no-merges"
         );
         //@finishSkipCommitHooks
         return trim($log, $this->_getCommitDelimiter());
+    }
+
+    /**
+     * Get VCS helper
+     *
+     * @param string $name
+     * @param array  $options
+     * @return Git\Helper\AbstractHelper
+     */
+    public function getHelper($name, array $options = array())
+    {
+        $class = "Git\\Helper\\$name";
+        /** @var Git\Helper\AbstractHelper $helper */
+        $helper = new $class($options);
+        $helper->setEngine($this);
+        return $helper;
+    }
+
+    /**
+     * Get Dispatcher
+     *
+     * @return InterfaceDispatcher
+     */
+    public function getDispatcher()
+    {
+        return $this->_dispatcher;
+    }
+
+    /**
+     * Set Dispatcher
+     *
+     * @param InterfaceDispatcher $dispatcher
+     * @return $this
+     */
+    public function setDispatcher(InterfaceDispatcher $dispatcher)
+    {
+        $this->_dispatcher = $dispatcher;
+        return $this;
     }
 }

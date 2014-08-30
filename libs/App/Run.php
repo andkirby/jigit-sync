@@ -7,6 +7,7 @@
  */
 
 namespace App;
+use \Jigit\Dispatcher;
 use \Jigit\Config;
 use Jigit\Exception;
 use \Jigit\Output;
@@ -22,7 +23,7 @@ use Jigit\UserException;
  *
  * @package App
  */
-class Run
+class Run implements Dispatcher\InterfaceDispatcher
 {
     /**#@+
      * Action names
@@ -30,6 +31,13 @@ class Run
     const ACTION_REPORT = 'report';
     const ACTION_PUSH_TASKS = 'push-tasks';
     /**#@-*/
+
+    /**
+     * VCS model
+     *
+     * @var Git
+     */
+    protected $_vcs;
 
     /**
      * Project key in JIRA
@@ -68,6 +76,7 @@ class Run
      *
      * @param string $action
      * @param array  $params
+     * @return $this
      * @throws \Jigit\Exception
      * @throws \Jigit\UserException
      */
@@ -84,6 +93,7 @@ class Run
         $this->_setProjectInfoOutput();
 
         $this->_processAction();
+        return $this;
     }
 
     /**
@@ -125,7 +135,7 @@ class Run
      */
     protected function _getGitKeys()
     {
-        $git = new Git();
+        $git = $this->getVcs();
         return $git->getCommits();
     }
 
@@ -344,7 +354,7 @@ STR;
 
             Config::addDebug($gitKeysString);
 
-            $this->getOutput()->add('Found issues in GIT:');
+            $this->getOutput()->add('Found issues in VCS:');
             $this->getOutput()->add(JigitJira\KeysFormatter::format($gitKeysString, 7));
 
             $jqlList = $this->_getJqls($gitKeysString);
@@ -356,5 +366,19 @@ STR;
         } else {
             throw new Exception('Invalid action.');
         }
+    }
+
+    /**
+     * Get VCS
+     *
+     * @return Git
+     */
+    public function getVcs()
+    {
+        if (null === $this->_vcs) {
+            $this->_vcs = new Git();
+            $this->_vcs->setDispatcher($this);
+        }
+        return $this->_vcs;
     }
 }

@@ -18,7 +18,7 @@ class Config extends Data
     /**
      * App version
      */
-    const VERSION = '0.6.1';
+    const VERSION = '0.6.2';
 
     /**
      * Instance

@@ -11,6 +11,7 @@ namespace Jigit;
 use \Jigit\Config;
 use \chobie\Jira as Jira;
 use \Jigit\Jira as JigitJira;
+use Jigit\Dispatcher\InterfaceDispatcher;
 
 /**
  * Class Report
@@ -19,6 +20,13 @@ use \Jigit\Jira as JigitJira;
  */
 class Report
 {
+    /**
+     * Dispatcher
+     *
+     * @var InterfaceDispatcher
+     */
+    protected $_dispatcher;
+
     /**
      * Make report
      *
@@ -234,11 +242,30 @@ class Report
      */
     protected function _isIssueInAnotherBranch($issue)
     {
-        $key     = $issue->getKey();
-        $gitRoot = Config\Project::getProjectGitRoot();
-        //@startSkipCommitHooks
-        $log = `git --git-dir $gitRoot/.git/ log --all --no-merges --grep="$key"`;
-        //@finishSkipCommitHooks
-        return (bool) $log;
+        $key    = $issue->getKey();
+        $helper = $this->getDispatcher()->getVcs()->getHelper('IssueInBranches');
+        return $helper->process($key);
+    }
+
+    /**
+     * Get Dispatcher
+     *
+     * @return InterfaceDispatcher
+     */
+    public function getDispatcher()
+    {
+        return $this->_dispatcher;
+    }
+
+    /**
+     * Set Dispatcher
+     *
+     * @param InterfaceDispatcher $dispatcher
+     * @return $this
+     */
+    public function setDispatcher(InterfaceDispatcher $dispatcher)
+    {
+        $this->_dispatcher = $dispatcher;
+        return $this;
     }
 }
