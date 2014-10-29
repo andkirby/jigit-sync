@@ -40,6 +40,13 @@ class Run implements Dispatcher\InterfaceDispatcher
     protected $_vcs;
 
     /**
+     * Api
+     *
+     * @var Jira\Api
+     */
+    protected $_api;
+
+    /**
      * Project key in JIRA
      *
      * @var string
@@ -119,12 +126,15 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     protected function _getApi()
     {
-        return new Jira\Api(
-            Config\Jira::getJiraUrl(),
-            new Jira\Api\Authentication\Basic(
-                Config\Jira::getJiraUsername(), Config\Jira::getPassword()
-            )
-        );
+        if (null === $this->_api) {
+            $this->_api = new Jira\Api(
+                Config\Jira::getJiraUrl(),
+                new Jira\Api\Authentication\Basic(
+                    Config\Jira::getJiraUsername(), Config\Jira::getPassword()
+                )
+            );
+        }
+        return $this->_api;
     }
 
     /**
@@ -142,12 +152,13 @@ class Run implements Dispatcher\InterfaceDispatcher
     /**
      * Get JQLs for report
      *
-     * @param string $gitKeys
+     * @param string      $gitKeys
+     * @param null|string $file
      * @return array
      */
-    protected function _getJqls($gitKeys)
+    protected function _getJqls($gitKeys, $file = null)
     {
-        $jqls = new JigitJira\Jql();
+        $jqls = new JigitJira\Jql($file);
         return $jqls->getJqls($gitKeys);
     }
 
@@ -242,11 +253,7 @@ class Run implements Dispatcher\InterfaceDispatcher
         $connectFile = JIGIT_ROOT . '/config/project.ini';
         $reader = new Reader\Ini();
         $config = $reader->read($connectFile, $this->_project);
-        Config\Project::setGitBranchTop($config['git_branch_top']);
-        Config\Project::setGitBranchLow($config['git_branch_low']);
-        Config\Project::setJiraTargetFixVersion($config['jira_target_fix_version']);
-        Config\Project::setJiraTargetFixVersionInProgress($config['jira_target_fix_version_in_progress']);
-        Config\Project::setJiraActiveSprints($config['jira_active_sprints']);
+        Config\Project::getInstance()->addData($config);
         Config\Project::setProjectGitRoot($config['project_git_root']);
         return $this;
     }
@@ -363,6 +370,8 @@ STR;
             $report->make($this->_getApi(), $jqlList);
         } elseif (self::ACTION_PUSH_TASKS == $this->_action) {
             throw new Exception('Not implemented.');
+//            $report = new Report();
+//            $report->makePushReport($this->_getApi(), $this->getVcs(), $this->_getJqls(null, 'jqls-set-fixversion.csv'));
         } else {
             throw new Exception('Invalid action.');
         }

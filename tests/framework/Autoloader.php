@@ -19,7 +19,7 @@ class Autoloader
     /**
      * Load class
      *
-     * @param $class
+     * @param string $class
      * @throws Exception
      */
     static public function autoload($class)
@@ -30,10 +30,10 @@ class Autoloader
         $file = str_replace('\\', '/', $class) . '.php';
         $file = self::_applyAliases($file);
         if (self::_isExist($file)) {
-            include_once $file; ;
+            include_once $file;
         } else {
             throw new \Exception(
-                'Could not load file ' . $file . ' in include path: ' .
+                'Could not load file "' . $file . '" in include path: ' .
                 get_include_path(), self::EXCEPTION_CODE
             );
         }

@@ -64,10 +64,48 @@ class Git implements InterfaceVcs
     }
 
     /**
+     * Run GIT command in project dir
+     *
+     * @param string        $command
+     * @param null|string   $gitRoot
+     * @return mixed
+     */
+    public function runInProjectDir($command, $gitRoot = null)
+    {
+        if (false === strpos($command, 'git ')) {
+            $command = 'git ' . $command;
+        }
+        $gitRoot = $gitRoot ?: Config\Project::getProjectGitRoot();
+        $command = str_replace('git ', "git --git-dir $gitRoot/.git/ ", $command);
+        return $this->run($command);
+    }
+
+    /**
+     * Get tags list
+     *
+     * @param bool $reverse
+     * @return array
+     */
+    public function getTags($reverse = true)
+    {
+        $tags = explode("\n", trim($this->runInProjectDir('tag -l')));
+        //@startSkipCommitHooks
+        $callFunction = function ($a, $b) {
+            return -1 * version_compare($a, $b);
+        };
+        //@finishSkipCommitHooks
+        usort($tags, $callFunction);
+        if ($reverse) {
+            $tags = array_reverse($tags);
+        }
+        return $tags;
+    }
+
+    /**
      * Run GIT command
      *
      * @param string $command
-     * @return mixed
+     * @return string
      */
     static public function run($command)
     {

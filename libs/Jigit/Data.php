@@ -23,29 +23,33 @@ class Data
     protected $_data = array();
 
     /**
-     * Get data by key
+     * Constructor
+     */
+    public function __construct()
+    {
+        //Empty
+    }
+
+    /**
+     * Get data
      *
      * @param string $key
-     * @return mixed
+     * @return array|string
      */
     public function getData($key = null)
     {
-        if (null === $key) {
+        if ($key) {
+            return isset($this->_data[$key]) ? $this->_data[$key] : null;
+        } else {
             return $this->_data;
         }
-
-        $key = (string) $key;
-        if (isset($this->_data[$key])) {
-            return $this->_data[$key];
-        }
-        return null;
     }
 
     /**
      * Set data
      *
-     * @param string|array $key
-     * @param mixed $value
+     * @param string $key
+     * @param mixed  $value
      * @return $this
      */
     public function setData($key, $value = null)
@@ -56,5 +60,29 @@ class Data
             $this->_data[$key] = $value;
         }
         return $this;
+    }
+
+    /**
+     * Add data
+     *
+     * @param array $data
+     * @return $this
+     */
+    public function addData(array $data)
+    {
+        foreach ($data as $key => $value) {
+            $this->setData($key, $value);
+        }
+        return $this;
+    }
+
+    /**
+     * Get data array
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        return $this->getData();
     }
 }

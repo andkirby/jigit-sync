@@ -78,13 +78,12 @@ class Config extends Data
     /**
      * Get debug mode status
      *
-     * @param $string
+     * @param string $string
      * @throws Exception
      */
     static public function addDebug($string)
     {
         if (self::isDebug()) {
-            self::getOutput()->addDelimiter();
             self::getOutput()->add('DEBUG: ' . $string);
         }
     }

@@ -31,6 +31,13 @@ class Jql
     /**#@-*/
 
     /**
+     * Source file for JQLs list
+     *
+     * @var string
+     */
+    protected $_sourceJqlsFile;
+
+    /**
      * Jira settings
      *
      * @var array
@@ -38,9 +45,19 @@ class Jql
     protected $_settings = null;
 
     /**
+     * Set JQLs source file
+     *
+     * @param string|null $jqlsFile
+     */
+    public function __construct($jqlsFile = null)
+    {
+        $this->_sourceJqlsFile = $jqlsFile ?: 'jqls.csv';
+    }
+
+    /**
      * Get JQLs
      *
-     * @param $gitKeys
+     * @param array $gitKeys
      * @return array
      */
     public function getJqls($gitKeys)
@@ -70,7 +87,16 @@ class Jql
         if (null === $this->_settings) {
             $this->_settings = $csv->toAssocArray(JIGIT_ROOT . '/jqls-settings.csv');
             $custom          = $csv->toAssocArray(JIGIT_ROOT . '/jqls-settings-local.csv');
+
+            //rewrite settings
+            foreach ($this->_getJiraJqlConfig() as $configName => $value) {
+                $originalName = str_replace('jira_', '', $configName);
+                $custom[$originalName] = $value ?: $custom[$originalName];
+            }
             $this->_settings = array_merge_recursive($this->_settings, $custom);
+            foreach ($this->_settings as $key => $value) {
+                $this->_settings[$key . '_quoted'] = addslashes($value);
+            }
         }
         if ($key) {
             return isset($this->_settings[$key]) ? $this->_settings[$key] : null;
@@ -105,7 +131,7 @@ class Jql
     /**
      * Set GIT keys
      *
-     * @param $gitKeys
+     * @param array $gitKeys
      * @return $this
      */
     protected function _setGitKeys($gitKeys)
@@ -122,7 +148,7 @@ class Jql
     protected function _getDraftJqls()
     {
         $csv  = new Jql\Reader\Csv();
-        $jqls = $csv->toArray(JIGIT_ROOT . '/jqls.csv');
+        $jqls = $csv->toArray($this->_getSourceJqlsFile());
         return $jqls;
     }
 
@@ -145,5 +171,25 @@ class Jql
     protected function _getDraftJqlString($item)
     {
         return $item['jql'] . ' %jql_default%';
+    }
+
+    /**
+     * Get source JQLs file
+     *
+     * @return string
+     */
+    protected function _getSourceJqlsFile()
+    {
+        return JIGIT_ROOT . '/' . $this->_sourceJqlsFile;
+    }
+
+    /**
+     * Get JIRA JQLs config
+     *
+     * @return array
+     */
+    protected function _getJiraJqlConfig()
+    {
+        return ConfigUser::getJiraJqlConfig();
     }
 }

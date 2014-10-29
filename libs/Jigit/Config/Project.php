@@ -204,4 +204,25 @@ class Project extends Config
             return $config;
         }
     }
+
+    /**
+     * Get JIRA JQL configuration
+     *
+     * @param null|string $key
+     * @return mixed
+     */
+    static public function getJiraJqlConfig($key = null)
+    {
+        if ($key) {
+            return self::getInstance()->getData('jira_jql_' . $key);
+        } else {
+            $config = array();
+            foreach (self::getInstance()->getData() as $key => $value) {
+                if (0 === strpos($key, 'jira_jql_')) {
+                    $config[$key] = $value;
+                }
+            }
+            return $config;
+        }
+    }
 }

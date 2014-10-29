@@ -18,7 +18,7 @@ class KeysFormatter
     /**
      * Count items in row
      */
-    const DEFAULT_KEYS_COUNT = 5;
+    const DEFAULT_KEYS_COUNT = 7;
 
     /**
      * Format heys
@@ -30,6 +30,6 @@ class KeysFormatter
      */
     static public function format($keys, $count = self::DEFAULT_KEYS_COUNT, $delimiter = PHP_EOL)
     {
-        return preg_replace('/(([A-Za-z-0-9]+,\s*){' . $count . '})/', '$1' . $delimiter, $keys);
+        return preg_replace('/(([^, ]+,\s*){' . $count . '})/', '$1' . $delimiter, $keys);
     }
 }
