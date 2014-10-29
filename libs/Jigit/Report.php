@@ -213,6 +213,60 @@ class Report
     }
 
     /**
+     * Make report of issues which should get some fixVersion.
+     *
+     * @param Jira\Api $api
+     * @param Git      $vcs
+     * @param array    $jqlList
+     */
+    public function makePushReport(Jira\Api $api, Git $vcs, array $jqlList)
+    {
+        $tagsString = JigitJira\KeysFormatter::format(implode(', ', $this->_getVcsTags($vcs)));
+        Config::addDebug('Found tags: ' . PHP_EOL . $tagsString);
+
+        foreach ($jqlList as $jqlItem) {
+            $this->_getOutput()->enableDecorator();
+            $this->_getOutput()->add($jqlItem['message']);
+            $this->_getOutput()->disableDecorator();
+            $this->_debugJqlItem($jqlItem);
+
+            $issueKeys = $this->_getIssueKeys($api, $jqlItem);
+            if ($issueKeys) {
+                $keys = JigitJira\KeysFormatter::format(implode(', ', $issueKeys));
+                $this->_getOutput()->add('Found JIRA issues: ' . PHP_EOL . $keys);
+            } else {
+                $this->_getOutput()->add('Found JIRA issues: -');
+                continue;
+            }
+
+            $vcsIssues = $this->_findIssuesInVcs($vcs, $issueKeys, $keys);
+
+            $issueKeyIdsInTags = array();
+            foreach ($vcsIssues as $tag => $ids) {
+                foreach ($ids as $id) {
+                    $issueKeyIdsInTags[$id][] = $tag;
+                    unset($issueKeys[$id]);
+                }
+            }
+
+            if ($issueKeyIdsInTags) {
+                $this->_getOutput()->addDelimiter();
+                $this->_getOutput()->add('Following issues should get fix version(s):');
+                $project = Config\Project::getJiraProject();
+                foreach ($issueKeyIdsInTags as $issueKeyId => $versions) {
+                    $this->_getOutput()->add("$project-$issueKeyId: " . implode(', ', $versions));
+                }
+            }
+            if ($issueKeys) {
+                $this->_getOutput()->addDelimiter();
+                $this->_getOutput()->add('Following issues were not found in VCS:');
+                $keys = JigitJira\KeysFormatter::format(implode(', ', $issueKeys));
+                $this->_getOutput()->add($keys);
+            }
+        }
+    }
+
+    /**
      * Get output model
      *
      * @return Output
@@ -267,5 +321,75 @@ class Report
     {
         $this->_dispatcher = $dispatcher;
         return $this;
+    }
+
+    /**
+     * Get issue keys
+     *
+     * @param Jira\Api $api
+     * @param array    $jqlItem
+     * @return array
+     */
+    protected function _getIssueKeys(Jira\Api $api, $jqlItem)
+    {
+        $issueKeys = array();
+        /** @var Jira\Api\Result $result */
+        $result = $api->search($jqlItem['jql'], 0, 300, 'issuekey, fixVersion');
+        if ($result->getIssuesCount()) {
+            /** @var Jira\Issue $issue */
+            foreach ($result->getIssues() as $issue) {
+                list(, $id) = explode('-', $issue->getKey());
+                $issueKeys[$id] = $issue->getKey();
+            }
+        }
+        return $issueKeys;
+    }
+
+    /**
+     * Get VCS tags
+     *
+     * @param Git $vcs
+     * @return array
+     */
+    protected function _getVcsTags(Git $vcs)
+    {
+        $tags   = $vcs->getTags();
+        //add default branches to identify tasks there
+        $tags[] = 'master';
+        $tags[] = 'develop';
+        return $tags;
+    }
+
+    /**
+     * Find issues in VCS
+     *
+     * @param Git $vcs
+     * @param array $issueKeys
+     * @param array $keys
+     * @return array
+     */
+    protected function _findIssuesInVcs(Git $vcs, $issueKeys, $keys)
+    {
+        $vcsIssues         = array();
+        $tags              = $this->_getVcsTags($vcs);
+        $prevTag           = array_shift($tags);
+        $issueKeyIdsString = implode('|', array_keys($issueKeys));
+        $project           = Config\Project::getJiraProject();
+        foreach ($tags as $tag) {
+            Config::addDebug("Find issues between: $prevTag..$tag");
+            $result = $vcs->runInProjectDir(
+                "log $prevTag..$tag --no-merges --reverse --oneline | grep -E \"$project-($issueKeyIdsString)\""
+            );
+            if ($result) {
+                preg_match_all('/\s' . $project . '-(\d+)/', $result, $keys);
+                $vcsIssues[$tag] = array_unique($keys[1]);
+                Config::addDebug(
+                    "Result GIT searching for tag '$tag': "
+                    . PHP_EOL . implode(', ', $vcsIssues[$tag])
+                );
+            }
+            $prevTag = $tag;
+        }
+        return $vcsIssues;
     }
 }
