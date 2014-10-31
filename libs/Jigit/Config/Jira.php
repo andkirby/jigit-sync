@@ -26,7 +26,11 @@ class Jira extends Config
      */
     static public function getPassword()
     {
-        $password = new Password();
+        $password = new Password(
+            self::getInstance()->getData('app/jira/password_file')
+            ?: APP_ROOT . DIRECTORY_SEPARATOR . self::_getConfigDir()
+            . DIRECTORY_SEPARATOR . 'jira.password'
+        );
         return $password->getPassword();
     }
 
@@ -70,5 +74,17 @@ class Jira extends Config
     static public function setJiraUrl($value)
     {
         return self::getInstance()->setData('app/jira/url', $value);
+    }
+
+    /**
+     * Get config dir
+     *
+     * @return string|null
+     * @throws Exception
+     * @throws \Lib\Config\Exception
+     */
+    protected static function _getConfigDir()
+    {
+        return self::getInstance()->getData('app/config_files/base_dir');
     }
 }
