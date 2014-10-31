@@ -16,6 +16,7 @@ app:
       i: app/jira/jql/alias/target_fix_version_in_progress
       debug: app/debug_mode
 
+  #Config for branches and versions in VCS
   vcs:
     branch:
       master: master
@@ -29,8 +30,10 @@ app:
         develop: v.develop
 
   jira:
+    #JQLs list grouped by action
     jql:
       action:
+        #General report action to identify "problem" issues
         report:
           inBranchWithoutFixVersion:
             message: Has no fix version.
@@ -85,6 +88,7 @@ app:
             message: Parent issue has commit.
             jql: |
 
+        #"push-tasks" action to check and update fixVersion
         push-tasks:
           issuesHaveNotFixVersion:
             message: Issues which must have fixVersion.
@@ -111,7 +115,13 @@ app:
               %status_not_done%
               %non_dev_issue_types%
 
+      #JQL aliases which might be used in JQL.
+      #To use any alias just put it into JQL and wrap with %.
+      #E.g: %fix_version_released%
+      #Also you may use quoted alias version with suffix "_quoted" in sub-query for example.
+      #E.g.: %default_quoted%
       alias:
+        #This is a default JQL alias and will be added authomatically
         default: >
           AND (issuetype != Epic AND 'Epic Link' is EMPTY)
         fix_version_released: >
