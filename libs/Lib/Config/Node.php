@@ -1,7 +1,6 @@
 <?php
-namespace Jigit\Config;
+namespace Lib\Config;
 
-use Jigit\Exception;
 use Zend_Config;
 
 /**
@@ -97,6 +96,8 @@ class Node extends \Zend_Config
             }
             $this->_count = count($this->_data);
         } else {
+            /** @see Zend_Config_Exception */
+            require_once 'Zend/Config/Exception.php';
             throw new \Zend_Config_Exception('Zend_Config is read only');
         }
     }
@@ -124,75 +125,5 @@ class Node extends \Zend_Config
     protected function _isNonAssociativeMerge(Zend_Config $merge)
     {
         return !$this->_isAssoc($this->_data) && !$this->_isAssoc($merge->toArray());
-    }
-
-    /**
-     * Get data
-     *
-     * @param string $key
-     * @param bool   $asArray
-     * @throws Exception
-     * @return $this|mixed
-     */
-    public function getData($key = null, $asArray = true)
-    {
-        if (null === $key) {
-            $value = $this;
-        } else {
-            if (strpos($key, '/')) {
-                $arr = explode('/', $key);
-                $key = array_shift($arr);
-                if (!is_object($this->$key)) {
-                    throw new Exception("Requested children of '$key' which does not have them.");
-                }
-                $value = $this->$key->getData(implode('/', $arr), $asArray);
-            } else {
-                $value = $this->$key;
-            }
-        }
-        if ($asArray && $value instanceof Node) {
-            $value = $value->toArray();
-        }
-        return $value;
-    }
-
-    /**
-     * Set data
-     *
-     * @param string $key
-     * @param mixed  $value
-     * @return $this
-     */
-    public function setData($key, $value = null)
-    {
-        if (is_array($key)) {
-            $this->_data = $key;
-        } else {
-            if (strpos($key, '/')) {
-                $arr = explode('/', $key);
-                $key = array_shift($arr);
-                if (null === $this->$key) {
-                    $this->$key = new Node(array(), true);
-                }
-                $this->$key->setData(implode('/', $arr), $value);
-            } else {
-                $this->$key = $value;
-            }
-        }
-        return $this;
-    }
-
-    /**
-     * Add data
-     *
-     * @param array $data
-     * @return $this
-     */
-    public function addData(array $data)
-    {
-        foreach ($data as $key => $value) {
-            $this->setData($key, $value);
-        }
-        return $this;
     }
 }
