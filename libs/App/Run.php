@@ -219,14 +219,14 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     protected function _initConfig()
     {
-        $files = array(JIGIT_ROOT . '/config/app.yml');
+        $files = array(APP_ROOT . '/config/app.yml');
         Config::loadConfig($files);
         $config = Config::getInstance();
 
         /**
          * Load extra files
          */
-        $configDir = JIGIT_ROOT . DIRECTORY_SEPARATOR
+        $configDir = APP_ROOT . DIRECTORY_SEPARATOR
             . $config->getData('app/config_files/base_dir');
 
         //project config files directory
@@ -296,7 +296,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     public function getHelp()
     {
-        return file_get_contents(JIGIT_ROOT . '/config/cli-manual.txt');
+        return file_get_contents(APP_ROOT . '/config/cli-manual.txt');
     }
 
     /**

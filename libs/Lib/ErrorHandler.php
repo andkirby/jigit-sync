@@ -34,4 +34,12 @@ class ErrorHandler
         $message = "PHPError [$errNo] $errStr at file $errFile:$errLine";
         throw new Exception($message);
     }
+
+    /**
+     * Register error handler
+     */
+    public static function register()
+    {
+        set_error_handler(__NAMESPACE__ . '\ErrorHandler::handleError');
+    }
 }

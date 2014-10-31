@@ -2,7 +2,7 @@
 /**
  * Define app root
  */
-!defined('JIGIT_ROOT') && define('JIGIT_ROOT', __DIR__);
+!defined('APP_ROOT') && define('APP_ROOT', __DIR__);
 
 /**
  * Define include paths
@@ -18,10 +18,10 @@ set_include_path(implode(PATH_SEPARATOR, $includePaths));
 /**
  * Initialize autoloader
  */
-require_once JIGIT_ROOT . '/libs/Jigit/Autoloader.php';
-spl_autoload_register('\Jigit\Autoloader::autoload');
+require_once APP_ROOT . '/libs/Lib/Autoloader.php';
+\Lib\Autoloader::register();
 
 /**
- * Register error handler
+ * Initialize ErrorHandler
  */
-set_error_handler('\Lib\ErrorHandler::handleError');
+\Lib\ErrorHandler::register();
