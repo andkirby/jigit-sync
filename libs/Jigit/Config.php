@@ -8,7 +8,7 @@
 
 namespace Jigit;
 
-use Jigit\Config\Node;
+use Lib\Config\Node;
 use Symfony\Component\Yaml\Parser;
 
 /**
