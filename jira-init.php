@@ -20,3 +20,8 @@ set_include_path(implode(PATH_SEPARATOR, $includePaths));
  */
 require_once JIGIT_ROOT . '/libs/Jigit/Autoloader.php';
 spl_autoload_register('\Jigit\Autoloader::autoload');
+
+/**
+ * Register error handler
+ */
+set_error_handler('\Lib\ErrorHandler::handleError');

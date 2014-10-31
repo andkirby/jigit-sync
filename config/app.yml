@@ -1,0 +1,113 @@
+app:
+  version: 0.6.2
+  config_files:
+    base_dir: config
+    project_dir: project
+    local: local.yml
+  query:
+    params_map:
+      low: app/git/branch_low
+      top: app/git/branch_top
+      ver: app/jira/jql/alias/target_fix_version
+      i: app/jira/jql/alias/target_fix_version_in_progress
+      debug: app/debug_mode
+  jira:
+    jql:
+      action:
+        report:
+          inBranchWithoutFixVersion:
+            message: Has no fix version.
+            jql: |
+              project = %project%
+                  AND (
+                      (fixVersion != %target_fix_version% OR fixVersion is EMPTY)
+                      AND status NOT IN (Open, Reopened, 'In Progress')
+                  )
+                  AND (
+                      (key IN (%git_keys%) AND type NOT IN ('Sub-Task Task'))
+                      OR
+                      (issueFunction IN parentsOf(""project = %project% AND key IN (%git_keys%)""))
+                  )
+          notAffectsCodeWithFixVersion:
+            message: Issues which did not affect the code.
+            jql: |
+              project = %project%
+              AND fixVersion = %target_fix_version%
+              AND key NOT IN (%git_keys%)
+              AND resolution NOT IN (%not_affects_code_resolutions%)
+              AND (labels NOT IN (%not_affects_code_labels%) OR labels IS EMPTY)
+              AND type NOT IN ('Change Request', Story, Epic)","Issues which did not affect the code.
+          parentIssueHasCommit:
+            message: Parent issue has commit.
+            jql: |
+              project = %project%
+                  AND fixVersion = %target_fix_version%
+                  AND key IN (%git_keys%)
+                  AND (type IN ('Change Request', Story, Epic) OR and issueFunction IN hasSubtasks())
+          openWithFixVersion:
+            message: Open issues for "in progress" fix version.
+            in_progress: 1
+            jql: |
+              project = %project%
+              AND status in (Open, Reopened, 'In Progress')
+              AND fixVersion = %target_fix_version%
+          openSubIssueInResolvedIssue:
+            message: Open TOP issues for "in progress" fix version.
+            in_progress: 1
+            jql: |
+              project = %project%
+              AND status in (Open, Reopened, 'In Progress')
+              AND issueFunction IN parentsOf(
+                  "project = %project% AND status NOT IN (Open, Reopened, 'In Progress') AND key IN (%git_keys%)"
+              )
+          inBranchWithoutAffectedVersion:
+            message: Parent issue has commit.
+            jql: |
+
+          notInSprint:
+            message: Parent issue has commit.
+            jql: |
+
+        push-tasks:
+          issuesHaveNotFixVersion:
+            message: Issues which must have fixVersion.
+            jql: |
+              project = %project%
+              AND fixVersion IS EMPTY
+              AND status NOT IN (Open, Reopened, 'In Progress', Closed)
+              AND issueFunction NOT IN hasSubtasks()
+              %top_level_issues%
+              %non_dev_issue_types%
+          subIssuesHaveNotFixVersion:
+            message: >
+              Sub-tasks which added to parent which in a released version.
+              They must have fixVersion or have to pushed to proper status.
+            jql: |
+              project = %project%
+              AND issueFunction IN subtasksOf(
+                'project = %project%
+                AND fixVersion not in (EMPTY)
+                AND fixVersion in releasedVersions()
+                %default_quoted%'
+              )
+              AND fixVersion IS EMPTY
+              %status_not_done%
+              %non_dev_issue_types%
+
+      alias:
+        default: >
+          AND (issuetype != Epic AND 'Epic Link' is EMPTY)
+        fix_version_released: >
+          AND fixversion in releasedVersions()
+        fix_version_unreleased: >
+          AND fixversion in unreleasedVersions()
+        status_not_done: >
+          AND status IN (Open, Reopened, 'In Progress', Resolved, 'Review in Progress', Reviewed)
+        top_level_issues: >
+          AND type NOT IN ('Sub-Task Task', 'Sub-Task Technical task')
+        non_dev_issue_types: >
+          AND type NOT IN ('Sub-Task Question', Question, Issue, Risk, Test)
+        not_affects_code_resolutions: >
+          Cancelled, 'Cannot Reproduce', Declined, Duplicate, 'Not a Bug', 'Not Actual'
+        not_affects_code_labels: >
+          nocode, fixedIn

@@ -16,9 +16,7 @@ try {
     $action = key($_GET);
     unset($_GET[$action]);
     $runner = new App\Run();
-    $runner->setOutput($output);
-    $runner->setDebugMode(isset($_GET['debug']) ? $_GET['debug'] : false);
-    $runner->run($action, $_GET);
+    $runner->run($action, $_GET, $output);
     //@finishSkipCommitHooks
 } catch (UserException $e) {
     if ($e->getCode() != 911) {
@@ -26,7 +24,8 @@ try {
         $output->add('ERROR: ' . $e->getMessage());
     }
 } catch (Exception $e) {
-    $output->add('FATAL: ' . $e);
+    $output->add('SYSTEM ERROR: ' . $e->getMessage());
+    $output->add('TRACE: ' . PHP_EOL . $e->getTraceAsString());
     echo $output->getOutputString();
     exit(1);
 }

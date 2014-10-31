@@ -30,20 +30,25 @@ class Report
     /**
      * Make report
      *
-     * @param Jira\Api $api
-     * @param array    $jqlList
+     * @param Jira\Api         $api
+     * @param Vcs\InterfaceVcs $vcs
+     * @param array            $jqlList
      */
-    public function make(Jira\Api $api, array $jqlList)
+    public function make(Jira\Api $api, Vcs\InterfaceVcs $vcs, array $jqlList)
     {
+        $this->_setProjectInfoOutput();
         /**
          * Show found issues
          */
         $inDifferentBranch = array();
         $found = false;
-        foreach ($jqlList as $jqlItem) {
+        foreach ($jqlList as $type => $jqlItem) {
+            $jqlItem['type'] = $type;
             $this->_debugJqlItem($jqlItem);
 
             $jql = $jqlItem['jql'];
+
+            //todo Update to using "released" status in JQL
             if (Config\Project::getJiraTargetFixVersionInProgress() && '1' !== $jqlItem['in_progress']
                 || !Config\Project::getJiraTargetFixVersionInProgress() && '0' !== $jqlItem['in_progress']
             ) {
@@ -76,108 +81,16 @@ class Report
                     }
                 }
 
-                $fields = $issue->getFields();
-
-                //fixVersions
-                $fixVersionsString = '';
-                $fixVersions = $issue->getFixVersions();
-                foreach ($fixVersions as $fix) {
-                    $fixVersionsString .= $fix['name'] . ' ';
-                }
-
-                //affectedVersions
-                $affectedVersionsString = '';
-                $affectedVersions = $fields['Affects Version/s'];
-                foreach ($affectedVersions as $fix) {
-                    $affectedVersionsString .= $fix['name'] . ' ';
-                }
-
-                //sprint
-                $sprint = $fields['Sprint'];
-                if ($sprint) {
-                    $matches = array();
-                    preg_match_all('/name\=([^,]+),.*?id\=([0-9]+)/', $sprint[0], $matches);
-                    $sprint = '';
-                    if ($matches[2]) {
-                        //get sprint ID
-                        $sprint .= $matches[2][0];
-                    } else {
-                        $sprint .= '0';
-                    }
-                    if ($matches[1]) {
-                        //get sprint name
-                        $sprint .= ', ' . $matches[1][0];
-                    }
-                }
-
                 //check fix version right?
-                if ($jqlItem['type'] === JigitJira\Jql::TYPE_WITHOUT_FIX_VERSION) {
-                    $fixVersions = explode(' ', trim($fixVersionsString));
-                    $affectedVersions = explode(' ', trim($affectedVersionsString));
-                    foreach ($affectedVersions as $affVer) {
-                        $affVer = ltrim($affVer, 'v');
-                        foreach ($fixVersions as $fixVer) {
-                            $fixVer = ltrim($fixVer, 'v');
-                            if ($affVer == trim(Config\Project::getJiraTargetFixVersion(), 'v')
-                                && version_compare($fixVer, $affVer, '>')
-                            ) {
-                                continue 3;
-                            }
-                        }
-                    }
-                }
-
-                $status = $issue->getStatus();
-                $status = $status['name'];
-                $type = $issue->getIssueType();
-                $type = $type['name'];
-
-                $authors = '';
-                if (JigitJira\Jql::TYPE_WITHOUT_FIX_VERSION == $jqlItem['type']
-                    || JigitJira\Jql::TYPE_OPEN_FOR_IN_PROGRESS_VERSION == $jqlItem['type']
+                if ($jqlItem['type'] === JigitJira\Jql::TYPE_WITHOUT_FIX_VERSION
+                    && $this->_isIssueFixVersionProper($issue)
                 ) {
-                    if (isset($gitKeys[$issue->getKey()])) {
-                        $authors = implode(', ', array_keys($gitKeys[$issue->getKey()]['hash']));
-                    } else {
-                        $assignee = $issue->getAssignee();
-                        $authors = $assignee['displayName'] . ' (assignee)';
-                    }
-                } elseif (JigitJira\Jql::TYPE_NOT_AFFECTS_CODE == $jqlItem['type']) {
-                    /**
-                     * Try to find author for non-code issue
-                     */
-                    $issueResult = $api->getIssue($issue->getKey(), 'changelog')->getResult();
-                    $issueResult['changelog'] = array_reverse($issueResult['changelog'], true);
-                    foreach ($issueResult['changelog'] as $changes) {
-                        if (!is_array($changes)) {
-                            continue;
-                        }
-                        foreach ($changes as $key => $change) {
-                            foreach ($change['items'] as $item) {
-                                if ($item['field'] == $item['field'] && $item['toString'] == 'Resolved') {
-                                    $authors = $change['author']['displayName'];
-                                    break 3;
-                                }
-                            }
-                        }
-                    }
-                    if (!$authors) {
-                        $assignee = $issue->getAssignee();
-                        $authors = $assignee['displayName'] . ' (assignee)';
-                    }
+                    continue;
                 }
 
                 $showKeys[] = $issue->getKey();
-                $strIssue = array();
-                $strIssue[] = "Key:               {$issue->getKey()}: {$issue->getSummary()}";
-                $strIssue[] = "Type:              {$type}";
-                $strIssue[] = "AffectedVersion/s: {$affectedVersionsString}";
-                $strIssue[] = "FixVersion/s:      {$fixVersionsString}";
-                $strIssue[] = "Status:            {$status}";
-                $strIssue[] = "Sprint:            {$sprint}";
-                $strIssue[] = "Author/s:          {$authors}";
-                $toOutput[] = $strIssue;
-
+                $authors = $this->_getAuthorsByJqlType($jqlItem, $issue, $api, $vcs);
+                $toOutput[] = $this->_getIssueContentBlock($issue, $authors);
                 $added = true;
             }
 
@@ -221,10 +134,10 @@ class Report
      */
     public function makePushReport(Jira\Api $api, Git $vcs, array $jqlList)
     {
-        $tagsString = JigitJira\KeysFormatter::format(implode(', ', $this->_getVcsTags($vcs)));
-        Config::addDebug('Found tags: ' . PHP_EOL . $tagsString);
-
-        foreach ($jqlList as $jqlItem) {
+        $this->_setProjectInfoOutput();
+        Config::addDebug('Found tags: ' . PHP_EOL . implode(', ', $this->_getVcsTags($vcs)));
+        foreach ($jqlList as $type => $jqlItem) {
+            $jqlItem['type'] = $type;
             $this->_getOutput()->enableDecorator();
             $this->_getOutput()->add($jqlItem['message']);
             $this->_getOutput()->disableDecorator();
@@ -267,6 +180,27 @@ class Report
     }
 
     /**
+     * Set project info output
+     *
+     * @return $this
+     */
+    protected function _setProjectInfoOutput()
+    {
+        $inProgress = Config\Project::getJiraTargetFixVersionInProgress() ? 'YES' : 'NO';
+        $branches = Config\Project::getGitBranchLow()
+            . ' -> ' . Config\Project::getGitBranchTop();
+        $project = Config\Project::getJiraProject();
+        $this->_getOutput()->enableDecorator(true, true)
+            ->add("Project:             {$project}")
+//            ->add("Compare:             " . $branches)
+//            ->add("Target FixVersion:   " . Config\Project::getJiraTargetFixVersion())
+//            ->add("Version in progress: $inProgress")
+//            ->add("Sprint:              " . Config\Project::getJiraActiveSprints())
+            ->disableDecorator();
+        return $this;
+    }
+
+    /**
      * Get output model
      *
      * @return Output
@@ -284,7 +218,7 @@ class Report
      */
     protected function _debugJqlItem(array $jqlItem)
     {
-        Config::addDebug("JQL: {$jqlItem['type']}: {$jqlItem['jql']}");
+        Config::addDebug("JQL: {$jqlItem['type']}: \n{$jqlItem['jql']}");
         return $this;
     }
 
@@ -391,5 +325,244 @@ class Report
             $prevTag = $tag;
         }
         return $vcsIssues;
+    }
+
+    /**
+     * Get Affects Version/s of issue
+     *
+     * @param Jira\Issue $issue
+     * @return array
+     */
+    protected function _getIssueAffectsVersions($issue)
+    {
+        $affectedVersions = array();
+        foreach ($issue->get('Affects Version/s') as $fix) {
+            $affectedVersions[] = $fix['name'];
+        }
+        return $affectedVersions;
+    }
+
+    /**
+     * Get Fix Version/s of issue
+     *
+     * @param Jira\Issue $issue
+     * @return array
+     */
+    protected function _getIssueFixVersions($issue)
+    {
+        $affectedVersions = array();
+        foreach ($issue->getFixVersions() as $fix) {
+            $affectedVersions[] = $fix['name'];
+        }
+        return $affectedVersions;
+    }
+
+    /**
+     * Check fix version added properly
+     *
+     * @param Jira\Issue $issue
+     * @return array
+     */
+    protected function _isIssueFixVersionProper($issue)
+    {
+        $fixVersions      = $this->_getIssueFixVersions($issue);
+        $affectedVersions = $this->_getIssueAffectsVersions($issue);
+        foreach ($affectedVersions as $affVer) {
+            $affVer = ltrim($affVer, 'v');
+            foreach ($fixVersions as $fixVer) {
+                $fixVer = ltrim($fixVer, 'v');
+                if ($affVer == trim(Config\Project::getJiraTargetFixVersion(), 'v')
+                    && version_compare($fixVer, $affVer, '>')
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get issue sprints
+     *
+     * @param Jira\Issue $issue
+     * @return string
+     */
+    protected function _getIssueSprint($issue)
+    {
+        $sprint = $issue->get('Sprint');
+        if ($sprint) {
+            $matches = array();
+            preg_match_all('/name\=([^,]+),.*?id\=([0-9]+)/', $sprint[0], $matches);
+            $sprint = '';
+            if ($matches[2]) {
+                //get sprint ID
+                $sprint .= $matches[2][0];
+            } else {
+                $sprint .= '0';
+            }
+            if ($matches[1]) {
+                //get sprint name
+                $sprint .= ', ' . $matches[1][0];
+                return $sprint;
+            }
+            return $sprint;
+        }
+        return $sprint;
+    }
+
+    /**
+     * Get issue status
+     *
+     * @param Jira\Issue $issue
+     * @return string
+     */
+    protected function _getIssueStatus($issue)
+    {
+        $status = $issue->getStatus();
+        $status = $status['name'];
+        return $status;
+    }
+
+    /**
+     * Get issue type
+     *
+     * @param Jira\Issue $issue
+     * @return mixed
+     */
+    protected function _getIssueType($issue)
+    {
+        $type = $issue->getIssueType();
+        $type = $type['name'];
+        return $type;
+    }
+
+    /**
+     * Get issue sprints
+     *
+     * @param Jira\Issue $issue
+     * @param Jira\Api   $api
+     * @param Jira\Issue $issue
+     * @param array      $gitKeys
+     * @return array
+     */
+    protected function _getIssueAuthors(Jira\Api $api, Jira\Issue $issue, $gitKeys)
+    {
+        $authors = $this->_getIssueVcsAuthors($issue, $gitKeys);
+        if (!$authors) {
+            $authors = $this->_getIssueChangeLogAuthors($api, $issue);
+        }
+        if (!$authors) {
+            $assignee = $this->_getIssueAssignee($issue);
+            $authors  = $assignee;
+        }
+        return $authors;
+    }
+
+    /**
+     * Get issue VCS authors
+     *
+     * @param Jira\Issue $issue
+     * @param array      gitKeys
+     * @return string
+     */
+    protected function _getIssueVcsAuthors(Jira\Issue $issue, $gitKeys)
+    {
+        $authors = array();
+        if ($gitKeys && isset($gitKeys[$issue->getKey()])) {
+            $authors = implode(', ', array_keys($gitKeys[$issue->getKey()]['hash']));
+        }
+        return $authors;
+    }
+
+    /**
+     * Get issue authors from issue change log
+     *
+     * @param Jira\Api   $api
+     * @param Jira\Issue $issue
+     * @return mixed
+     */
+    protected function _getIssueChangeLogAuthors(Jira\Api $api, Jira\Issue $issue)
+    {
+        /**
+         * Try to find author for non-code issue
+         */
+        $authors = array();
+        $issueResult              = $api->getIssue($issue->getKey(), 'changelog')->getResult();
+        $issueResult['changelog'] = array_reverse($issueResult['changelog'], true);
+        foreach ($issueResult['changelog'] as $changes) {
+            if (!is_array($changes)) {
+                continue;
+            }
+            foreach ($changes as $key => $change) {
+                foreach ($change['items'] as $item) {
+                    if ($item['field'] == $item['field'] && $item['toString'] == 'Resolved') {
+                        $authors = $change['author']['displayName'];
+                        break 3;
+                    }
+                }
+            }
+        }
+        return $authors;
+    }
+
+    /**
+     * Get issue assignee
+     *
+     * @param Jira\Issue $issue
+     * @return mixed|string
+     */
+    protected function _getIssueAssignee(Jira\Issue $issue)
+    {
+        $assignee = $issue->getAssignee();
+        return $assignee['displayName'] . ' (assignee)';
+    }
+
+    /**
+     * Get authors by JQL type
+     *
+     * @param array            $jqlItem
+     * @param Jira\Issue       $issue
+     * @param Jira\Api         $api
+     * @param Vcs\InterfaceVcs $vcs
+     * @return array|string
+     */
+    protected function _getAuthorsByJqlType($jqlItem, $issue, Jira\Api $api, Vcs\InterfaceVcs $vcs)
+    {
+        $authors = '';
+        if (JigitJira\Jql::TYPE_WITHOUT_FIX_VERSION == $jqlItem['type']
+            || JigitJira\Jql::TYPE_OPEN_FOR_IN_PROGRESS_VERSION == $jqlItem['type']
+        ) {
+            $authors = $this->_getIssueAuthors($api, $issue, $vcs->getCommits());
+            return $authors;
+        } elseif (JigitJira\Jql::TYPE_NOT_AFFECTS_CODE == $jqlItem['type']) {
+            $authors = $this->_getIssueAuthors($api, $issue, array());
+            return $authors;
+        }
+        return $authors;
+    }
+
+    /**
+     * Get issue content block
+     *
+     * @param Jira\Issue $issue
+     * @param array $authors
+     * @return array
+     */
+    protected function _getIssueContentBlock($issue, $authors)
+    {
+        $sprint            = $this->_getIssueSprint($issue);
+        $status            = $this->_getIssueStatus($issue);
+        $type              = $this->_getIssueType($issue);
+        $affectedVersions  = implode(', ', $this->_getIssueAffectsVersions($issue));
+        $fixVersionsString = implode(', ', $this->_getIssueFixVersions($issue));
+        $strIssue          = array();
+        $strIssue[]        = "Key:               {$issue->getKey()}: {$issue->getSummary()}";
+        $strIssue[]        = "Type:              {$type}";
+        $strIssue[]        = "AffectedVersion/s: {$affectedVersions}";
+        $strIssue[]        = "FixVersion/s:      {$fixVersionsString}";
+        $strIssue[]        = "Status:            {$status}";
+        $strIssue[]        = "Sprint:            {$sprint}";
+        $strIssue[]        = "Author/s:          {$authors}";
+        return $strIssue;
     }
 }

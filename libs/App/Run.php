@@ -33,6 +33,13 @@ class Run implements Dispatcher\InterfaceDispatcher
     /**#@-*/
 
     /**
+     * Output
+     *
+     * @var Output
+     */
+    protected $_output;
+
+    /**
      * VCS model
      *
      * @var Git
@@ -83,22 +90,22 @@ class Run implements Dispatcher\InterfaceDispatcher
      *
      * @param string $action
      * @param array  $params
+     * @param Output $output
+     * @throws Exception
+     * @throws UserException
      * @return $this
-     * @throws \Jigit\Exception
-     * @throws \Jigit\UserException
      */
-    public function run($action, array $params)
+    public function run($action, array $params, $output)
     {
-        $this->_setAction($action);
+        $this->setOutput($output);
+        $this->_checkRequestedHelp($params);
         $this->_setProject(@$params['p']);
+        $this->_setAction($action);
         $this->_initConfig();
-        $this->_setJiraConfig();
-        $this->_setProjectConfig();
+        Config::getInstance()->setData('output', $this->_output);
+        $this->_mergeProjectConfig();
         $this->_setParams($params);
-
         $this->_setHeaderOutput();
-        $this->_setProjectInfoOutput();
-
         $this->_processAction();
         return $this;
     }
@@ -130,7 +137,7 @@ class Run implements Dispatcher\InterfaceDispatcher
             $this->_api = new Jira\Api(
                 Config\Jira::getJiraUrl(),
                 new Jira\Api\Authentication\Basic(
-                    Config\Jira::getJiraUsername(), Config\Jira::getPassword()
+                    Config\Jira::getUsername(), Config\Jira::getPassword()
                 )
             );
         }
@@ -146,19 +153,19 @@ class Run implements Dispatcher\InterfaceDispatcher
     protected function _getGitKeys()
     {
         $git = $this->getVcs();
-        return $git->getCommits();
+        return array_keys($git->getCommits());
     }
 
     /**
      * Get JQLs for report
      *
      * @param string      $gitKeys
-     * @param null|string $file
+     * @param null|string $action
      * @return array
      */
-    protected function _getJqls($gitKeys, $file = null)
+    protected function _getJqls($gitKeys, $action)
     {
-        $jqls = new JigitJira\Jql($file);
+        $jqls = new JigitJira\Jql($action);
         return $jqls->getJqls($gitKeys);
     }
 
@@ -170,7 +177,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     public function setOutput(Output $output)
     {
-        Config::getInstance()->setData('output', $output);
+        $this->_output = $output;
         return $this;
     }
 
@@ -183,23 +190,11 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     protected function _setParams(array $params)
     {
-        if (isset($params['low'])) {
-            Config\Project::setGitBranchLow($params['low']);
-        }
-        if (isset($params['top'])) {
-            Config\Project::setGitBranchTop($params['top']);
-        }
-        if (isset($params['ver'])) {
-            Config\Project::setJiraTargetFixVersion($params['ver']);
-        }
-        if (isset($params['i'])) {
-            Config\Project::setJiraTargetFixVersionInProgress($params['i']);
-        }
-        if (isset($params['h'])) {
-            $str = $this->getHelp();
-            $this->getOutput()->add($str);
-            //todo Refactor code to avoid trowing exception
-            throw new UserException('Help', 911);
+        $map = Config::getInstance()->getData('app/query/params_map');
+        foreach ($map as $paramName => $configXpath) {
+            if (isset($params[$paramName])) {
+                Config::getInstance()->setData($configXpath, $params[$paramName]);
+            }
         }
         return $this;
     }
@@ -211,50 +206,40 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     public function getOutput()
     {
-        return Config::getInstance()->getData('output');
+        return $this->_output;
     }
 
     /**
      * Init config
      *
+     * @todo Need to make refactoring
+     * @throws Exception
+     * @throws UserException
      * @return $this
      */
     protected function _initConfig()
     {
-        Config::getInstance();
-        return $this;
-    }
+        $files = array(JIGIT_ROOT . '/config/app.yml');
+        Config::loadConfig($files);
+        $config = Config::getInstance();
 
-    /**
-     * Set JIRA config
-     *
-     * @return string
-     */
-    protected function _setJiraConfig()
-    {
-        $connectFile = JIGIT_ROOT . '/config/jira-config.ini';
-        $reader = new Reader\Ini();
-        $config = $reader->read($connectFile, $this->_project);
-        if (!$config) {
-            $config = $reader->read($connectFile, 'main');
-        }
-        Config\Jira::setJiraUsername($config['jira_user']);
-        Config\Jira::setJiraUrl($config['jira_url']);
-        return $this;
-    }
+        /**
+         * Load extra files
+         */
+        $configDir = JIGIT_ROOT . DIRECTORY_SEPARATOR
+            . $config->getData('app/config_files/base_dir');
 
-    /**
-     * Set JIRA config
-     *
-     * @return string
-     */
-    protected function _setProjectConfig()
-    {
-        $connectFile = JIGIT_ROOT . '/config/project.ini';
-        $reader = new Reader\Ini();
-        $config = $reader->read($connectFile, $this->_project);
-        Config\Project::getInstance()->addData($config);
-        Config\Project::setProjectGitRoot($config['project_git_root']);
+        //project config files directory
+        $projectDir = $configDir . DIRECTORY_SEPARATOR
+            . $config->getData('app/config_files/project_dir');
+
+        //get project config files
+        $files = array(
+            $configDir . DIRECTORY_SEPARATOR . $config->getData('app/config_files/local'),
+            $projectDir . DIRECTORY_SEPARATOR . $this->_project . '.yml',
+        );
+        Config::loadConfig($files);
+        Config\Project::setJiraProject($this->_project);
         return $this;
     }
 
@@ -275,26 +260,6 @@ class Run implements Dispatcher\InterfaceDispatcher
     }
 
     /**
-     * Set project info output
-     *
-     * @return $this
-     */
-    protected function _setProjectInfoOutput()
-    {
-        $inProgress = Config\Project::getJiraTargetFixVersionInProgress() ? 'YES' : 'NO';
-        $branches = Config\Project::getGitBranchLow()
-            . ' -> ' . Config\Project::getGitBranchTop();
-        $this->getOutput()->enableDecorator(true, true)
-            ->add("Project:             {$this->_project}")
-            ->add("Compare:             " . $branches)
-            ->add("Target FixVersion:   " . Config\Project::getJiraTargetFixVersion())
-            ->add("Version in progress: $inProgress")
-            ->add("Sprint:              " . Config\Project::getJiraActiveSprints())
-            ->disableDecorator();
-        return $this;
-    }
-
-    /**
      * Set project
      *
      * @param string $project
@@ -309,7 +274,6 @@ class Run implements Dispatcher\InterfaceDispatcher
         }
 
         $this->_project = strtoupper($project);
-        Config\Project::setJiraProject($this->_project);
         return $this;
     }
 
@@ -321,7 +285,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     public function setDebugMode($flag)
     {
-        Config::getInstance()->setData('debug_mode', $flag);
+        Config::getInstance()->setData('app/debug_mode', $flag);
         return $this;
     }
 
@@ -332,20 +296,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     public function getHelp()
     {
-        //@startSkipCommitHooks
-        return <<<STR
-    [action] - First verb in command.
-               Available actions:
-               report     - make report to identify problems.
-               push-tasks - pushed tasks to done which added to a given version.
-    p        - Project key.
-    low      - VCS low branch/tag.
-    top      - Target VCS branch/tag.
-    i        - Version \"In progress\" status.
-    v        - Version name.
-    debug    - Debug mode.
-STR;
-        //@finishSkipCommitHooks
+        return file_get_contents(JIGIT_ROOT . '/config/cli-manual.txt');
     }
 
     /**
@@ -356,22 +307,24 @@ STR;
     protected function _processAction()
     {
         if (self::ACTION_REPORT == $this->_action) {
-            $gitKeys       = $this->_getGitKeys();
-            $gitKeysString = implode(',', array_keys($gitKeys));
-
-            Config::addDebug($gitKeysString);
+            $gitKeys = $this->_getGitKeys();
 
             $this->getOutput()->add('Found issues in VCS:');
-            $this->getOutput()->add(JigitJira\KeysFormatter::format($gitKeysString, 7));
-
-            $jqlList = $this->_getJqls($gitKeysString);
+            $this->getOutput()->add(implode(', ', $gitKeys));
 
             $report = new Report();
-            $report->make($this->_getApi(), $jqlList);
+            $report->make(
+                $this->_getApi(),
+                $this->getVcs(),
+                $this->_getJqls($gitKeys, $this->_action)
+            );
         } elseif (self::ACTION_PUSH_TASKS == $this->_action) {
-            throw new Exception('Not implemented.');
-//            $report = new Report();
-//            $report->makePushReport($this->_getApi(), $this->getVcs(), $this->_getJqls(null, 'jqls-set-fixversion.csv'));
+            $report = new Report();
+            $report->makePushReport(
+                $this->_getApi(),
+                $this->getVcs(),
+                $this->_getJqls(null, $this->_action)
+            );
         } else {
             throw new Exception('Invalid action.');
         }
@@ -389,5 +342,38 @@ STR;
             $this->_vcs->setDispatcher($this);
         }
         return $this->_vcs;
+    }
+
+    /**
+     * Check requested help
+     *
+     * @param array $params
+     * @return array
+     * @throws UserException
+     */
+    protected function _checkRequestedHelp(array $params)
+    {
+        if (isset($params['h'])) {
+            $str = $this->getHelp();
+            $this->getOutput()->add($str);
+            //todo Refactor code to avoid trowing exception
+            throw new UserException('Help', 911);
+        }
+        return $params;
+    }
+
+    /**
+     * Merge project config into application config
+     *
+     * @return $this
+     * @throws Exception
+     */
+    protected function _mergeProjectConfig()
+    {
+        $jiraConfig = Config::getInstance()->getData('project/' . $this->_project, false);
+        if ($jiraConfig instanceof Config\Node) {
+            Config::getInstance()->getData('app', false)->merge($jiraConfig);
+        }
+        return $this;
     }
 }

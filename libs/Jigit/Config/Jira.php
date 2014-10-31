@@ -35,9 +35,9 @@ class Jira extends Config
      *
      * @return string
      */
-    static public function getJiraUsername()
+    static public function getUsername()
     {
-        return self::getInstance()->getData('jira_username');
+        return self::getInstance()->getData('app/jira/username');
     }
 
     /**
@@ -48,7 +48,7 @@ class Jira extends Config
      */
     static public function setJiraUsername($value)
     {
-        return self::getInstance()->setData('jira_username', $value);
+        return self::getInstance()->setData('app/jira/username', $value);
     }
 
     /**
@@ -58,7 +58,7 @@ class Jira extends Config
      */
     static public function getJiraUrl()
     {
-        return self::getInstance()->getData('jira_url');
+        return self::getInstance()->getData('app/jira/url');
     }
 
     /**
@@ -69,6 +69,6 @@ class Jira extends Config
      */
     static public function setJiraUrl($value)
     {
-        return self::getInstance()->setData('jira_url', $value);
+        return self::getInstance()->setData('app/jira/url', $value);
     }
 }

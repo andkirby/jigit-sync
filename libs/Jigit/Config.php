@@ -8,18 +8,16 @@
 
 namespace Jigit;
 
+use Jigit\Config\Node;
+use Symfony\Component\Yaml\Parser;
+
 /**
  * Class Config
  *
  * @package Jigit
  */
-class Config extends Data
+class Config extends \Zend_Config
 {
-    /**
-     * App version
-     */
-    const VERSION = '0.6.2';
-
     /**
      * Instance
      *
@@ -34,18 +32,63 @@ class Config extends Data
      */
     static public function getVersion()
     {
-        return self::VERSION;
+        return self::getInstance()->version;
+    }
+
+    /**
+     * Load config
+     *
+     * At fist it set loaded config and in other times it will merge into exist one
+     *
+     * @param array $files
+     */
+    public static function loadConfig(array $files)
+    {
+        if (null === self::$_instance) {
+            self::$_instance = self::_getConfigInstance(array_shift($files));
+        }
+        foreach ($files as $file) {
+            self::$_instance->merge(self::_getConfigInstance($file));
+        }
+    }
+
+    /**
+     * Get config instance
+     *
+     * @param string $file
+     * @return \Zend_Config
+     */
+    protected static function _getConfigInstance($file)
+    {
+        $yaml = new Parser();
+        $config = (array) $yaml->parse(
+            file_get_contents($file)
+        );
+        return self::_getConfigNode($config, true);
+    }
+
+    /**
+     * Get config node
+     *
+     * @param array $data
+     * @param bool  $allowModifications
+     * @return Node
+     */
+    protected static function _getConfigNode(array $data, $allowModifications = false)
+    {
+        return new Node($data, $allowModifications);
     }
 
     /**
      * Get instance
      *
-     * @return Config
+     * @throws Exception
+     * @return Node
      */
-    static public function getInstance()
+    public static function getInstance()
     {
         if (null === self::$_instance) {
-            self::$_instance = new self();
+            throw new Exception('Please use loadConfig() method to set config instance');
         }
         return self::$_instance;
     }
@@ -57,11 +100,11 @@ class Config extends Data
      */
     static public function isDebug()
     {
-        return (bool) self::getInstance()->getData('debug_mode');
+        return (bool) self::getInstance()->getData('app/debug_mode');
     }
 
     /**
-     * Get debug mode status
+     * Get output
      *
      * @return Output
      * @throws Exception
@@ -84,6 +127,9 @@ class Config extends Data
     static public function addDebug($string)
     {
         if (self::isDebug()) {
+            if (is_array($string)) {
+                $string = implode(', ', $string);
+            }
             self::getOutput()->add('DEBUG: ' . $string);
         }
     }

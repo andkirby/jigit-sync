@@ -7,6 +7,7 @@
  */
 
 namespace Jigit\Dispatcher;
+use Jigit\Output;
 use \Jigit\Vcs\InterfaceVcs;
 /**
  * Interface Dispatcher
@@ -27,9 +28,8 @@ interface InterfaceDispatcher
      *
      * @param string $action
      * @param array  $params
+     * @param Output $output
      * @return $this
-     * @throws \Jigit\Exception
-     * @throws \Jigit\UserException
      */
-    public function run($action, array $params);
+    public function run($action, array $params, $output);
 }

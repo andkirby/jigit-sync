@@ -33,7 +33,7 @@ class IssueInBranches extends AbstractHelper
             throw new Exception('Issue key is not set.');
         }
 
-        $gitRoot = Config\Project::getProjectGitRoot();
+        $gitRoot = Config\Project::getProjectRoot();
         //@startSkipCommitHooks
         $log = Git::run(`git --git-dir $gitRoot/.git/ log --all --no-merges --grep="$issueKey"`);
         //@finishSkipCommitHooks

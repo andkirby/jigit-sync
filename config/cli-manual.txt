@@ -1,0 +1,10 @@
+    [action] - First verb in command.
+               Available actions:
+               report     - make report to identify problems.
+               push-tasks - pushed tasks to done which added to a given version.
+    p        - Project key.
+    low      - VCS low branch/tag.
+    top      - Target VCS branch/tag.
+    ver      - Target FixVersion name.
+    i        - Releasing status of the given FixVersion.
+    debug    - Debug mode.

@@ -59,4 +59,11 @@ interface InterfaceVcs
      * @todo Make common helper interface
      */
     public function getHelper($name, array $options = array());
+
+    /**
+     * Get requested commits list grouped by ISSUE key
+     *
+     * @return array
+     */
+    public function getCommits();
 }

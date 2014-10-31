@@ -33,6 +33,13 @@ class Git implements InterfaceVcs
     protected $_dispatcher;
 
     /**
+     * Requested commits list
+     *
+     * @var array
+     */
+    protected $_commits;
+
+    /**
      * Get JIRA keys from range
      *
      * @return array
@@ -40,27 +47,30 @@ class Git implements InterfaceVcs
      */
     public function getCommits()
     {
-        /**
-         * Get issues between different code versions
-         */
-        $branchLow = Config\Project::getGitBranchLow();
-        $branchTop = Config\Project::getGitBranchTop();
-        $gitRoot = Config\Project::getProjectGitRoot();
-        $project = Config\Project::getJiraProject();
+        if (null === $this->_commits) {
+            /**
+             * Get issues between different code versions
+             */
+            $branchLow = Config\Project::getGitBranchLow();
+            $branchTop = Config\Project::getGitBranchTop();
+            $gitRoot = Config\Project::getProjectRoot();
+            $project = Config\Project::getJiraProject();
 
-        $this->isBranchValid($gitRoot, $branchLow);
-        $this->isBranchValid($gitRoot, $branchTop);
+            $this->isBranchValid($gitRoot, $branchLow);
+            $this->isBranchValid($gitRoot, $branchTop);
 
-        $format = $this->_getLogFormat();
-        $gitRoot = Config\Project::getProjectGitRoot();
+            $format = $this->_getLogFormat();
+            $gitRoot = Config\Project::getProjectRoot();
 
-        $log = $this->_getLog($gitRoot, $branchLow, $branchTop, $format);
+            $log = $this->_getLog($gitRoot, $branchLow, $branchTop, $format);
 
-        Config::addDebug('LOG: ' . $log);
-        if (!$log) {
-            throw new UserException('No VCS log found.');
+            Config::addDebug('LOG: ' . $log);
+            if (!$log) {
+                throw new UserException('No VCS log found.');
+            }
+            $this->_commits = $this->_getGroupedCommits($log, $project);
         }
-        return $this->_getGroupedCommits($log, $project);
+        return $this->_commits;
     }
 
     /**
@@ -75,7 +85,7 @@ class Git implements InterfaceVcs
         if (false === strpos($command, 'git ')) {
             $command = 'git ' . $command;
         }
-        $gitRoot = $gitRoot ?: Config\Project::getProjectGitRoot();
+        $gitRoot = $gitRoot ?: Config\Project::getProjectRoot();
         $command = str_replace('git ', "git --git-dir $gitRoot/.git/ ", $command);
         return $this->run($command);
     }

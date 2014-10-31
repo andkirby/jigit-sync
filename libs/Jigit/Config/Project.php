@@ -26,7 +26,7 @@ class Project extends Config
      */
     static public function getJiraProject()
     {
-        return self::getInstance()->getData('jira_project');
+        return self::getInstance()->getData('app/jira/project');
     }
 
     /**
@@ -37,7 +37,7 @@ class Project extends Config
      */
     static public function setJiraProject($value)
     {
-        return self::getInstance()->setData('jira_project', $value);
+        return self::getInstance()->setData('app/jira/project', strtoupper($value));
     }
 
     /**
@@ -47,7 +47,7 @@ class Project extends Config
      */
     static public function getGitBranchTop()
     {
-        return self::getInstance()->getData('git_branch_top');
+        return self::getInstance()->getData('app/git/branch_top');
     }
 
     /**
@@ -58,7 +58,7 @@ class Project extends Config
      */
     static public function setGitBranchTop($value)
     {
-        return self::getInstance()->setData('git_branch_top', $value);
+        return self::getInstance()->setData('app/git/branch_top', $value);
     }
 
     /**
@@ -68,7 +68,7 @@ class Project extends Config
      */
     static public function getGitBranchLow()
     {
-        return self::getInstance()->getData('git_branch_low');
+        return self::getInstance()->getData('app/git/branch_low');
     }
 
     /**
@@ -79,7 +79,7 @@ class Project extends Config
      */
     static public function setGitBranchLow($value)
     {
-        return self::getInstance()->setData('git_branch_low', $value);
+        return self::getInstance()->setData('app/git/branch_low', $value);
     }
 
     /**
@@ -89,7 +89,7 @@ class Project extends Config
      */
     static public function getJiraTargetFixVersion()
     {
-        return self::getInstance()->getData('jira_target_fix_version');
+        return self::getInstance()->getData('app/jira/jql/alias/target_fix_version');
     }
 
     /**
@@ -100,7 +100,7 @@ class Project extends Config
      */
     static public function setJiraTargetFixVersion($value)
     {
-        return self::getInstance()->setData('jira_target_fix_version', $value);
+        return self::getInstance()->setData('app/jira/jql/alias/target_fix_version', $value);
     }
 
     /**
@@ -110,7 +110,7 @@ class Project extends Config
      */
     static public function getJiraTargetFixVersionInProgress()
     {
-        return self::getInstance()->getData('jira_target_fix_version_in_progress');
+        return self::getInstance()->getData('app/jira/jql/alias/target_fix_version_in_progress');
     }
 
     /**
@@ -121,7 +121,7 @@ class Project extends Config
      */
     static public function setJiraTargetFixVersionInProgress($value)
     {
-        return self::getInstance()->setData('jira_target_fix_version_in_progress', $value);
+        return self::getInstance()->setData('app/jira/jql/alias/target_fix_version_in_progress', $value);
     }
 
     /**
@@ -131,7 +131,7 @@ class Project extends Config
      */
     static public function getJiraActiveSprints()
     {
-        return self::getInstance()->getData('jira_active_sprints');
+        return self::getInstance()->getData('app/jira/jql/alias/active_sprints');
     }
 
     /**
@@ -142,7 +142,26 @@ class Project extends Config
      */
     static public function setJiraActiveSprints($value)
     {
-        return self::getInstance()->setData('jira_active_sprints', $value);
+        return self::getInstance()->setData('app/jira/jql/alias/active_sprints', $value);
+    }
+
+    /**
+     * Set JIRA active sprints
+     *
+     * @throws Exception
+     * @throws UserException
+     * @return Config
+     */
+    static public function validate()
+    {
+        $path = self::getProjectRoot();
+        if (!is_dir($path) || !is_readable($path)) {
+            throw new UserException("Directory '$path' is not exists or not readable.");
+        }
+        if (!is_dir($path . '/.git') || !is_readable($path . '/.git')) {
+            throw new UserException("GIT directory '$path' is not exists or not readable.");
+        }
+        return true;
     }
 
     /**
@@ -150,9 +169,9 @@ class Project extends Config
      *
      * @return string
      */
-    static public function getProjectGitRoot()
+    static public function getProjectRoot()
     {
-        return rtrim(self::getInstance()->getData('project_git_root'), '\\/');
+        return rtrim(self::getInstance()->getData('project/' . self::getJiraProject() . '/root'), '\\/');
     }
 
     /**
@@ -162,15 +181,9 @@ class Project extends Config
      * @return Config
      * @throws \Jigit\UserException
      */
-    static public function setProjectGitRoot($path)
+    static public function setProjectRoot($path)
     {
-        if (!file_exists($path) || !is_readable($path)) {
-            throw new UserException("Directory '$path' is not exists or not readable.");
-        }
-        if (!file_exists($path . '/.git') || !is_readable($path . '/.git')) {
-            throw new UserException("Git directory '$path' is not exists or not readable.");
-        }
-        return self::getInstance()->setData('project_git_root', $path);
+        return self::getInstance()->setData('project/' . self::getJiraProject() . 'root', $path);
     }
 
     /**
@@ -181,7 +194,7 @@ class Project extends Config
      */
     static public function getJiraNonAffectsCodeLabels()
     {
-        return array('nocode', 'fixedIn');
+        return self::getInstance()->getData('app/jira/jql/alias/non_affects_code_labels');
     }
 
     /**
@@ -193,15 +206,9 @@ class Project extends Config
     static public function getJiraConfig($key = null)
     {
         if ($key) {
-            return self::getInstance()->getData('jira_' . $key);
+            return self::getInstance()->getData('app/jira/' . $key);
         } else {
-            $config = array();
-            foreach (self::getInstance()->getData() as $key => $value) {
-                if (0 === strpos($key, 'jira_')) {
-                    $config[$key] = $value;
-                }
-            }
-            return $config;
+            return self::getInstance()->getData('app/jira');
         }
     }
 
@@ -211,18 +218,12 @@ class Project extends Config
      * @param null|string $key
      * @return mixed
      */
-    static public function getJiraJqlConfig($key = null)
+    static public function getJiraJqlAliases($key = null)
     {
         if ($key) {
-            return self::getInstance()->getData('jira_jql_' . $key);
+            return self::getInstance()->getData('app/jira/jql/alias/' . $key);
         } else {
-            $config = array();
-            foreach (self::getInstance()->getData() as $key => $value) {
-                if (0 === strpos($key, 'jira_jql_')) {
-                    $config[$key] = $value;
-                }
-            }
-            return $config;
+            return self::getInstance()->getData('app/jira/jql/alias');
         }
     }
 }

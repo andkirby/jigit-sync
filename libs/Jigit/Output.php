@@ -78,7 +78,7 @@ class Output
             $contents = explode($delimiter, $content);
         }
         foreach ($contents as $content) {
-            $content = $this->_decorateRow($content);
+            $content = $this->_decorateContent($content);
             $this->_output[] = (string) $content;
         }
         return $this;
@@ -148,6 +148,28 @@ class Output
     public function getOutputString()
     {
         return implode($this->_outputDelimiter, $this->_output) . $this->_outputDelimiter;
+    }
+
+    /**
+     * Decorate content
+     *
+     * @param string $content
+     * @return string
+     */
+    protected function _decorateContent($content)
+    {
+        $shift  = $this->_decoratorOn ? 4 : 0;
+        $length = mb_strlen($content) + $shift;
+        if ($length > $this->_decoratorWidth) {
+            $content = wordwrap($content, $this->_decoratorWidth - $shift);
+            $output  = '';
+            foreach (explode(PHP_EOL, $content) as $line) {
+                $output .= $this->_decorateRow($line);
+            }
+        } else {
+            $output = $this->_decorateRow($content);
+        }
+        return $output;
     }
 
     /**

@@ -8,7 +8,7 @@
 namespace Jigit\Jira;
 
 use Jigit\Config;
-use \Jigit\Config\Project as ConfigUser;
+use \Jigit\Config\Project as ConfigProject;
 use Jigit\Jira\Jql\Filter;
 
 /**
@@ -35,7 +35,7 @@ class Jql
      *
      * @var string
      */
-    protected $_sourceJqlsFile;
+    protected $_namespace;
 
     /**
      * Jira settings
@@ -47,11 +47,11 @@ class Jql
     /**
      * Set JQLs source file
      *
-     * @param string|null $jqlsFile
+     * @param string|null $namespace
      */
-    public function __construct($jqlsFile = null)
+    public function __construct($namespace)
     {
-        $this->_sourceJqlsFile = $jqlsFile ?: 'jqls.csv';
+        $this->_namespace = $namespace;
     }
 
     /**
@@ -62,12 +62,15 @@ class Jql
      */
     public function getJqls($gitKeys)
     {
+        if (is_array($gitKeys)) {
+            implode(', ', $gitKeys);
+        }
         $jqls = $this->_getDraftJqls();
         $filter = $this->_getFilter();
         $this->_setGitKeys($gitKeys);
-        $this->_setJqlSettings();
-        $gitKeys    = array('git_keys' => $gitKeys);
-        $filterData = array_merge($gitKeys, ConfigUser::getJiraConfig(), $this->_getJqlSetting());
+        $filterData = $this->_getJqlSetting();
+        $filterData['git_keys'] = $gitKeys;
+        $filterData['project'] = ConfigProject::getJiraProject();;
         foreach ($jqls as &$item) {
             $jql = $this->_getDraftJqlString($item);
             $item['jql'] = $filter->filter($jql, $filterData);
@@ -83,19 +86,10 @@ class Jql
      */
     protected function _getJqlSetting($key = null)
     {
-        $csv = new Jql\Reader\Csv();
         if (null === $this->_settings) {
-            $this->_settings = $csv->toAssocArray(JIGIT_ROOT . '/jqls-settings.csv');
-            $custom          = $csv->toAssocArray(JIGIT_ROOT . '/jqls-settings-local.csv');
-
-            //rewrite settings
-            foreach ($this->_getJiraJqlConfig() as $configName => $value) {
-                $originalName = str_replace('jira_', '', $configName);
-                $custom[$originalName] = $value ?: $custom[$originalName];
-            }
-            $this->_settings = array_merge_recursive($this->_settings, $custom);
-            foreach ($this->_settings as $key => $value) {
-                $this->_settings[$key . '_quoted'] = addslashes($value);
+            $this->_settings = ConfigProject::getJiraJqlAliases();
+            foreach ($this->_settings as $name => $value) {
+                $this->_settings[$name . '_quoted'] = addslashes($value);
             }
         }
         if ($key) {
@@ -103,29 +97,6 @@ class Jql
         } else {
             return $this->_settings;
         }
-    }
-
-    /**
-     * Set JQL settings
-     *
-     * @return $this
-     */
-    protected function _setJqlSettings()
-    {
-        $defaultJql = $this->_getJqlSetting('default_jql');
-        if ($defaultJql) {
-            $defaultJql = ' AND (' . $defaultJql . ')';
-            Config::getInstance()->setData('jira_default_jql', $defaultJql);
-        }
-        Config::getInstance()->setData(
-            'jira_not_affects_code_resolutions',
-            $this->_getJqlSetting('not_affects_code_resolutions')
-        );
-        Config::getInstance()->setData(
-            'jira_not_affects_code_labels',
-            $this->_getJqlSetting('not_affects_code_labels')
-        );
-        return $this;
     }
 
     /**
@@ -147,9 +118,7 @@ class Jql
      */
     protected function _getDraftJqls()
     {
-        $csv  = new Jql\Reader\Csv();
-        $jqls = $csv->toArray($this->_getSourceJqlsFile());
-        return $jqls;
+        return Config::getInstance()->getData('app/jira/jql/action/' . $this->_namespace);
     }
 
     /**
@@ -170,17 +139,7 @@ class Jql
      */
     protected function _getDraftJqlString($item)
     {
-        return $item['jql'] . ' %jql_default%';
-    }
-
-    /**
-     * Get source JQLs file
-     *
-     * @return string
-     */
-    protected function _getSourceJqlsFile()
-    {
-        return JIGIT_ROOT . '/' . $this->_sourceJqlsFile;
+        return $item['jql'] . ' %default%';
     }
 
     /**
@@ -190,6 +149,6 @@ class Jql
      */
     protected function _getJiraJqlConfig()
     {
-        return ConfigUser::getJiraJqlConfig();
+        return ConfigProject::getJiraJqlAliases();
     }
 }
