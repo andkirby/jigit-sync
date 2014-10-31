@@ -20,8 +20,8 @@ app:
       hotfix: hotfix/%s
       release: release/%s
     version:
-      suffix: v
-      suffix_in_branch:
+      prefix: v
+      prefix_in_branch:
       alias:
         develop: v.develop
 
