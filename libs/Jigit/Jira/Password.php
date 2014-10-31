@@ -42,7 +42,7 @@ class Password
     /**
      * Initialize
      *
-     * @throws \Jigit\PasswordException
+     * @throws PasswordException
      */
     protected function _init()
     {
