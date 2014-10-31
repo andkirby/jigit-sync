@@ -16,3 +16,4 @@ project:
       jql:
         helper:
           default: AND (issuetype != Epic AND 'Epic Link' is EMPTY OR 'Epic Link' NOT IN (EXAMPLE-271, EXAMPLE-272, EXAMPLE-3223, EXAMPLE-319))
+

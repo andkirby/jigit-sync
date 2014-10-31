@@ -1,11 +1,14 @@
 app:
-  version: 0.6.2
+  version: 0.7.0
   config_files:
     base_dir: config
+    # Project directory in base_dir. It should contain files with project specifi config
     project_dir: project
+    # File with local settings. It should contain JIRA URL and JIRA username
     local: local.yml
 
   query:
+    # Set following query parameters into config by xpath from value
     params_map:
       low: app/git/branch_low
       top: app/git/branch_top
