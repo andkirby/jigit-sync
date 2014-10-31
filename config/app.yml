@@ -25,6 +25,7 @@ app:
       alias:
         develop: v.develop
 
+  jira:
     jql:
       action:
         report:
