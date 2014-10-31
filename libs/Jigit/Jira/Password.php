@@ -1,15 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: kirby
- * Date: 12.08.2014
- * Time: 2:01
- */
-
 namespace Jigit\Jira;
-
-use Jigit\UserException as UserException;
-use Jigit\Exception as Exception;
 
 /**
  * Class Password
@@ -18,6 +8,13 @@ use Jigit\Exception as Exception;
  */
 class Password
 {
+    /**
+     * Password file
+     *
+     * @var string
+     */
+    protected $_passwordFile;
+
     /**
      * System ID
      *
@@ -33,9 +30,19 @@ class Password
     protected $_passwordInfo;
 
     /**
+     * Constructor
+     *
+     * @param string $file
+     */
+    public function __construct($file)
+    {
+        $this->_passwordFile = $file;
+    }
+
+    /**
      * Initialize
      *
-     * @throws \Jigit\UserException
+     * @throws \Jigit\PasswordException
      */
     protected function _init()
     {
@@ -49,7 +56,7 @@ class Password
      * Get password
      *
      * @return string
-     * @throws UserException
+     * @throws PasswordException
      */
     public function getPassword()
     {
@@ -165,13 +172,13 @@ class Password
      *
      * @param string $passId
      * @return $this
-     * @throws UserException
+     * @throws PasswordException
      */
     protected function _checkSystemId($passId)
     {
         if ($passId != md5($this->_getUuid())) {
-            throw new UserException(
-                'Your system ID is not matched. Please set your JIRA password in the file "jira.password".'
+            throw new PasswordException(
+                'Your system ID is not matched. Please your password in the file.', 101
             );
         }
         return $this;
@@ -184,7 +191,7 @@ class Password
      */
     protected function _getPasswordFile()
     {
-        return JIGIT_ROOT . '/config/jira.password';
+        return $this->_passwordFile;
     }
 
     /**
@@ -290,15 +297,24 @@ class Password
      * Check password set
      *
      * @return $this
-     * @throws \Jigit\UserException
+     * @throws PasswordException
      */
     protected function _checkPasswordSet()
     {
         if (!$this->_getPasswordInfo()) {
-            throw new UserException(
-                'Please use your JIRA password in the file "jira.password".'
+            throw new PasswordException(
+                'Password did not set into password file.', 100
             );
         }
         return $this;
     }
+}
+
+/**
+ * Class PasswordException
+ *
+ * @package Jigit\Jira
+ */
+class PasswordException extends \Exception
+{
 }
