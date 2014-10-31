@@ -69,7 +69,7 @@ class Jql
         $filter = $this->_getFilter();
         $this->_setGitKeys($gitKeys);
         $filterData = $this->_getJqlSetting();
-        $filterData['git_keys'] = $gitKeys;
+        $filterData['vcs_keys'] = $gitKeys;
         $filterData['project'] = ConfigProject::getJiraProject();;
         foreach ($jqls as &$item) {
             $jql = $this->_getDraftJqlString($item);
@@ -107,7 +107,7 @@ class Jql
      */
     protected function _setGitKeys($gitKeys)
     {
-        Config::getInstance()->setData('git_keys', $gitKeys);
+        Config::getInstance()->setData('vcs_keys', $gitKeys);
         return $this;
     }
 

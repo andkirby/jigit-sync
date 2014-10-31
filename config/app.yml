@@ -4,6 +4,7 @@ app:
     base_dir: config
     project_dir: project
     local: local.yml
+
   query:
     params_map:
       low: app/git/branch_low
@@ -11,7 +12,19 @@ app:
       ver: app/jira/jql/alias/target_fix_version
       i: app/jira/jql/alias/target_fix_version_in_progress
       debug: app/debug_mode
-  jira:
+
+  vcs:
+    branch:
+      master: master
+      develop: develop
+      hotfix: hotfix/%s
+      release: release/%s
+    version:
+      suffix: v
+      suffix_in_branch:
+      alias:
+        develop: v.develop
+
     jql:
       action:
         report:
@@ -24,16 +37,16 @@ app:
                       AND status NOT IN (Open, Reopened, 'In Progress')
                   )
                   AND (
-                      (key IN (%git_keys%) AND type NOT IN ('Sub-Task Task'))
+                      (key IN (%vcs_keys%) AND type NOT IN ('Sub-Task Task'))
                       OR
-                      (issueFunction IN parentsOf(""project = %project% AND key IN (%git_keys%)""))
+                      (issueFunction IN parentsOf(""project = %project% AND key IN (%vcs_keys%)""))
                   )
           notAffectsCodeWithFixVersion:
             message: Issues which did not affect the code.
             jql: |
               project = %project%
               AND fixVersion = %target_fix_version%
-              AND key NOT IN (%git_keys%)
+              AND key NOT IN (%vcs_keys%)
               AND resolution NOT IN (%not_affects_code_resolutions%)
               AND (labels NOT IN (%not_affects_code_labels%) OR labels IS EMPTY)
               AND type NOT IN ('Change Request', Story, Epic)","Issues which did not affect the code.
@@ -42,7 +55,7 @@ app:
             jql: |
               project = %project%
                   AND fixVersion = %target_fix_version%
-                  AND key IN (%git_keys%)
+                  AND key IN (%vcs_keys%)
                   AND (type IN ('Change Request', Story, Epic) OR and issueFunction IN hasSubtasks())
           openWithFixVersion:
             message: Open issues for "in progress" fix version.
@@ -58,7 +71,7 @@ app:
               project = %project%
               AND status in (Open, Reopened, 'In Progress')
               AND issueFunction IN parentsOf(
-                  "project = %project% AND status NOT IN (Open, Reopened, 'In Progress') AND key IN (%git_keys%)"
+                  "project = %project% AND status NOT IN (Open, Reopened, 'In Progress') AND key IN (%vcs_keys%)"
               )
           inBranchWithoutAffectedVersion:
             message: Parent issue has commit.

@@ -5,20 +5,20 @@ jql,message,type,in_progress,skip_default_jql
         AND status NOT IN (Open, Reopened, 'In Progress')
     )
     AND (
-        (key IN (%git_keys%) AND type NOT IN ('Sub-Task Task'))
+        (key IN (%vcs_keys%) AND type NOT IN ('Sub-Task Task'))
         OR
-        (issueFunction IN parentsOf(""project = %jira_project% AND key IN (%git_keys%)""))
+        (issueFunction IN parentsOf(""project = %jira_project% AND key IN (%vcs_keys%)""))
     )
 ",Has no fix version.,inBranchWithoutFixVersion,-1,0
 "project = %jira_project%
     AND fixVersion = %jira_target_fix_version%
-    AND key NOT IN (%git_keys%)
+    AND key NOT IN (%vcs_keys%)
     AND resolution NOT IN (%jira_not_affects_code_resolutions%)
     AND (labels NOT IN (%jira_not_affects_code_labels%) OR labels IS EMPTY)
     AND type NOT IN ('Change Request', Story, Epic)","Issues which did not affect the code.",notAffectsCodeWithFixVersion,-1,0
 "project = %jira_project%
     AND fixVersion = %jira_target_fix_version%
-    AND key IN (%git_keys%)
+    AND key IN (%vcs_keys%)
     AND (type IN ('Change Request', Story, Epic) OR and issueFunction IN hasSubtasks())",Parent issue has commit.,parentIssueHasCommit,-1,0
 "project = %jira_project%
 AND status IN (Open, Reopened, 'In Progress')
@@ -26,7 +26,7 @@ AND (fixVersion = %jira_target_fix_version%)","Open issues for ""in progress"" f
 "project = %jira_project%
 AND status IN (Open, Reopened, 'In Progress')
 AND issueFunction IN parentsOf(
-    ""project = %jira_project% AND status NOT IN (Open, Reopened, 'In Progress') AND key IN (%git_keys%)""
+    ""project = %jira_project% AND status NOT IN (Open, Reopened, 'In Progress') AND key IN (%vcs_keys%)""
 )","Open TOP issues for ""in progress"" fix version.",openTopForInProgressVersion,1,0
 "project = %jira_project%
 AND (
@@ -34,7 +34,7 @@ AND (
     AND status IN (Open, Reopened, 'In Progress')
 )
 AND type NOT IN ('Sub-Task Task', 'Sub-Task Question')
-AND key IN (%git_keys%)",Has no affected version.,inBranchWithoutAffectedVersion,0,0
+AND key IN (%vcs_keys%)",Has no affected version.,inBranchWithoutAffectedVersion,0,0
 "project = %jira_project%
 (AND Sprint NOT IN (%jira_active_sprints%) OR Sprint IS EMPTY)
-AND key IN (%git_keys%)",Not added to sprint,notInSprint,1,0
+AND key IN (%vcs_keys%)",Not added to sprint,notInSprint,1,0
