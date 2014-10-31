@@ -1,0 +1,18 @@
+project:
+  EXAMPLE:
+    root: d:/home/example
+    jira:
+      active_sprints:
+        - 1095
+        - 1862
+      open_statuses:
+        - Open
+        - Reopened
+      resolved_statuses:
+        - Resolved
+        - Reviewed
+      finish_statuses:
+        - Ready for Verification
+      jql:
+        helper:
+          default: AND (issuetype != Epic AND 'Epic Link' is EMPTY OR 'Epic Link' NOT IN (EXAMPLE-271, EXAMPLE-272, EXAMPLE-3223, EXAMPLE-319))
