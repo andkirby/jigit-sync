@@ -1,10 +1,24 @@
-    [action] - First verb in command.
-               Available actions:
-               report     - make report to identify problems.
-               push-tasks - pushed tasks to done which added to a given version.
+  action [parameter [parameter=value]]
+
+  [action] - First verb in command.
+  Available actions:
+    report     - make report to identify problems.
+    push-tasks - pushed tasks to done which added to a given version.
+
+  Parameters
     p        - Project key.
-    low      - VCS low branch/tag.
-    top      - Target VCS branch/tag.
+    top      - Target VCS branch/tag to compare with low branch.
+    low      - VCS low branch/tag to compare with fix version branch.
     ver      - Target FixVersion name.
     i        - Releasing status of the given FixVersion.
     debug    - Debug mode.
+
+  Examples:
+    Check issues w/o FixVersion:
+      php jira.php push-tasks p=prj
+
+    Add required FixVersion into issues:
+      php jira.php push-tasks p=prj update
+
+    Add required FixVersion into issues:
+        php jira.php report p=prj ver=1.0.43 low=master top=hotfix/1.0.43
