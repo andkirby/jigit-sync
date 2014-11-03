@@ -22,6 +22,11 @@ require_once APP_ROOT . '/libs/Lib/Autoloader.php';
 \Lib\Autoloader::register();
 
 /**
+ * Add namespace because not directory "chobie"
+ */
+\Lib\Autoloader::addNamespace('chobie/Jira', 'Jira');
+
+/**
  * Initialize ErrorHandler
  */
 \Lib\ErrorHandler::register();
