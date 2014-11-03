@@ -63,7 +63,7 @@ class Jql
     public function getJqls($gitKeys)
     {
         if (is_array($gitKeys)) {
-            implode(', ', $gitKeys);
+            $gitKeys = implode(', ', $gitKeys);
         }
         $jqls = $this->_getDraftJqls();
         $filter = $this->_getFilter();
@@ -71,6 +71,7 @@ class Jql
         $filterData = $this->_getJqlSetting();
         $filterData['vcs_keys'] = $gitKeys;
         $filterData['project'] = ConfigProject::getJiraProject();;
+//        print_r($filterData); die;
         foreach ($jqls as &$item) {
             $jql = $this->_getDraftJqlString($item);
             $item['jql'] = $filter->filter($jql, $filterData);

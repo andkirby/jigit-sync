@@ -47,6 +47,7 @@ app:
         #General report action to identify "problem" issues
         report:
           inBranchWithoutFixVersion:
+            in_progress: -1
             message: Has no fix version.
             jql: |
               project = %project%
@@ -60,6 +61,7 @@ app:
                       (issueFunction IN parentsOf(""project = %project% AND key IN (%vcs_keys%)""))
                   )
           notAffectsCodeWithFixVersion:
+            in_progress: -1
             message: Issues which did not affect the code.
             jql: |
               project = %project%
@@ -69,6 +71,7 @@ app:
               AND (labels NOT IN (%not_affects_code_labels%) OR labels IS EMPTY)
               AND type NOT IN ('Change Request', Story, Epic)","Issues which did not affect the code.
           parentIssueHasCommit:
+            in_progress: -1
             message: Parent issue has commit.
             jql: |
               project = %project%
@@ -76,15 +79,15 @@ app:
                   AND key IN (%vcs_keys%)
                   AND (type IN ('Change Request', Story, Epic) OR and issueFunction IN hasSubtasks())
           openWithFixVersion:
-            message: Open issues for "in progress" fix version.
             in_progress: 1
+            message: Open issues for "in progress" fix version.
             jql: |
               project = %project%
               AND status in (Open, Reopened, 'In Progress')
               AND fixVersion = %target_fix_version%
           openSubIssueInResolvedIssue:
-            message: Open TOP issues for "in progress" fix version.
             in_progress: 1
+            message: Open TOP issues for "in progress" fix version.
             jql: |
               project = %project%
               AND status in (Open, Reopened, 'In Progress')
@@ -92,10 +95,12 @@ app:
                   "project = %project% AND status NOT IN (Open, Reopened, 'In Progress') AND key IN (%vcs_keys%)"
               )
           inBranchWithoutAffectedVersion:
+            in_progress: 0
             message: Parent issue has commit.
             jql: |
 
           notInSprint:
+            in_progress: 1
             message: Parent issue has commit.
             jql: |
 
