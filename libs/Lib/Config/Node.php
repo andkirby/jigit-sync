@@ -144,7 +144,7 @@ class Node extends \Zend_Config
                 $arr = explode('/', $key);
                 $key = array_shift($arr);
                 if (!is_object($this->$key)) {
-                    throw new Exception("Requested children of '$key' which does not have them.");
+                    return null;
                 }
                 $value = $this->$key->getData(implode('/', $arr), $asArray);
             } else {
