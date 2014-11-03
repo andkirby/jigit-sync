@@ -309,6 +309,7 @@ class Run implements Dispatcher\InterfaceDispatcher
     {
         if (self::ACTION_REPORT == $this->_action) {
             $this->_analiseRequest();
+            $this->_setProjectInfoOutput();
 
             $gitKeys = $this->_getGitKeys();
 
@@ -322,6 +323,8 @@ class Run implements Dispatcher\InterfaceDispatcher
                 $this->_getJqls($gitKeys, $this->_action)
             );
         } elseif (self::ACTION_PUSH_TASKS == $this->_action) {
+            $this->_setProjectInfoOutput();
+
             $report = new Report();
             $report->makePushReport(
                 $this->_getApi(),
@@ -331,6 +334,31 @@ class Run implements Dispatcher\InterfaceDispatcher
         } else {
             throw new Exception('Invalid action.');
         }
+    }
+
+    /**
+     * Set project info output
+     *
+     * @return $this
+     */
+    protected function _setProjectInfoOutput()
+    {
+        $inProgress = Config\Project::getJiraTargetFixVersionInProgress() ? 'YES' : 'NO';
+        $branches = Config\Project::getGitBranchLow()
+            . ' -> ' . Config\Project::getGitBranchTop();
+        $project = Config\Project::getJiraProject();
+        $output = $this->getOutput();
+        $output->enableDecorator(true, true)
+            ->add("Project:             {$project}");
+        if ($branches) {
+            $output
+                ->add("Compare:             " . $branches)
+                ->add("Target FixVersion:   " . Config\Project::getJiraTargetFixVersion())
+                ->add("Version in progress: $inProgress")
+                ->add("Sprint:              " . Config\Project::getJiraActiveSprints());
+        }
+        $output->disableDecorator();
+        return $this;
     }
 
     /**
@@ -410,24 +438,50 @@ class Run implements Dispatcher\InterfaceDispatcher
      * @throws Exception
      * @throws UserException
      * @return array
+     * @todo Actually this method contains two methods
+     * @todo Methods to implement: 1) getTargetBranchesFromVcsBranches 2) getTargetBranchesFromVcsTags
      */
     protected function _getBranchesFromVcsByFixVersion($fixVersion)
     {
-        $version               = $this->_getJiraTargetFixVersionNumber($fixVersion);
-        $branchesList          = $this->getVcs()->runInProjectDir('git branch -a');
-        $versionPrefixInBranch = Config::getInstance()->getData('app/vcs/version/prefix_in_branch');
-        $regular               = '~[\S]*?' . $versionPrefixInBranch . str_replace('.', '\.', $version) . '~';
-        preg_match($regular, $branchesList, $matches);
-        if (!$matches) {
-            return null;
+        $startRegular = '[\S]*?';
+        if (Config\Project::getVcsForceRemoteStatus()) {
+            $startRegular = 'remotes\/';
         }
-        $branchTop = $matches[0];
-        if (false !== strpos($branchTop, 'hotfix')) {
-            $branchLow = 'master';
-        } elseif (false !== strpos($branchTop, 'release')) {
-            $branchLow = 'master';
+        $version      = $this->_getJiraTargetFixVersionNumber($fixVersion);
+        $branchesList = $this->getVcs()->runInProjectDir('git branch -a');
+        Config::addDebug($branchesList);
+        $versionPrefixInBranch = Config::getInstance()->getData('app/vcs/version/prefix_in_branch');
+        $regular               = '~' . $startRegular
+            . '(\S*?'. $versionPrefixInBranch . str_replace('.', '\.', $version) . ')~';
+        preg_match($regular, $branchesList, $matches);
+
+        if ($matches) {
+            $branchTop = $matches[1];
+            if (false !== strpos($branchTop, 'hotfix')) {
+                $branchLow = 'master';
+            } elseif (false !== strpos($branchTop, 'release')) {
+                $branchLow = 'master';
+            } else {
+                return null;
+            }
+            $remoteNamePrefix = Config\Project::getVcsRemoteName();
+            if ($remoteNamePrefix) {
+                $branchLow = $remoteNamePrefix . '/' . $branchLow;
+            }
         } else {
-            return null;
+            /**
+             * Try to find tag
+             */
+            //todo refactor this block into separated method
+            $tagsList = $this->getVcs()->runInProjectDir('git tag');
+            Config::addDebug($tagsList);
+            $tags = $this->getVcs()->getTags();
+            $key = array_search($fixVersion, $tags);
+            if (false === $key) {
+                return null;
+            }
+            $branchTop = $tags[$key];
+            $branchLow = $tags[$key - 1];
         }
         return array(
             'branch_low' => $branchLow,

@@ -36,7 +36,6 @@ class Report
      */
     public function make(Jira\Api $api, Vcs\InterfaceVcs $vcs, array $jqlList)
     {
-        $this->_setProjectInfoOutput();
         /**
          * Show found issues
          */
@@ -134,7 +133,6 @@ class Report
      */
     public function makePushReport(Jira\Api $api, Git $vcs, array $jqlList)
     {
-        $this->_setProjectInfoOutput();
         Config::addDebug('Found tags: ' . PHP_EOL . implode(', ', $this->_getVcsTags($vcs)));
         foreach ($jqlList as $type => $jqlItem) {
             $jqlItem['type'] = $type;
@@ -177,31 +175,6 @@ class Report
                 $this->_getOutput()->add($keys);
             }
         }
-    }
-
-    /**
-     * Set project info output
-     *
-     * @return $this
-     */
-    protected function _setProjectInfoOutput()
-    {
-        $inProgress = Config\Project::getJiraTargetFixVersionInProgress() ? 'YES' : 'NO';
-        $branches = Config\Project::getGitBranchLow()
-            . ' -> ' . Config\Project::getGitBranchTop();
-        $project = Config\Project::getJiraProject();
-        $output = $this->_getOutput();
-        $output->enableDecorator(true, true)
-            ->add("Project:             {$project}");
-        if ($branches) {
-            $output
-                ->add("Compare:             " . $branches)
-                ->add("Target FixVersion:   " . Config\Project::getJiraTargetFixVersion())
-                ->add("Version in progress: $inProgress")
-                ->add("Sprint:              " . Config\Project::getJiraActiveSprints());
-        }
-        $output->disableDecorator();
-        return $this;
     }
 
     /**
@@ -466,7 +439,7 @@ class Report
      * Get issue VCS authors
      *
      * @param Jira\Issue $issue
-     * @param array      gitKeys
+     * @param array      $gitKeys
      * @return string
      */
     protected function _getIssueVcsAuthors(Jira\Issue $issue, $gitKeys)

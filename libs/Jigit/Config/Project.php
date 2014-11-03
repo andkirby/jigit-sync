@@ -31,6 +31,8 @@ class Project extends Config
     const PATH_JIRA_PROJECT                   = 'app/jira/project';
     const PATH_JIRA_JQL_ALIAS                 = 'app/jira/jql/alias';
     const PATH_JIRA                           = 'app/jira';
+    const PATH_VCS_REMOTE_FORCE_USING         = 'app/vcs/remote/force_using';
+    const PATH_VCS_REMOTE_NAME                = 'app/vcs/remote/name';
     /**#@-*/
 
     /**
@@ -244,5 +246,27 @@ class Project extends Config
                 return self::getInstance()->getData(self::PATH_JIRA_JQL_ALIAS);
             }
         }
+    }
+
+    /**
+     * Get JIRA JQL configuration
+     *
+     * @throws Exception
+     * @return bool
+     */
+    static public function getVcsForceRemoteStatus()
+    {
+        return (bool)self::getInstance()->getData(self::PATH_VCS_REMOTE_FORCE_USING);
+    }
+
+    /**
+     * Get JIRA JQL configuration
+     *
+     * @throws Exception
+     * @return bool
+     */
+    static public function getVcsRemoteName()
+    {
+        return self::getInstance()->getData(self::PATH_VCS_REMOTE_NAME);
     }
 }
