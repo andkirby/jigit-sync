@@ -307,6 +307,8 @@ class Run implements Dispatcher\InterfaceDispatcher
     protected function _processAction()
     {
         if (self::ACTION_REPORT == $this->_action) {
+            $this->_analiseRequest();
+
             $gitKeys = $this->_getGitKeys();
 
             $this->getOutput()->add('Found issues in VCS:');
@@ -328,6 +330,71 @@ class Run implements Dispatcher\InterfaceDispatcher
         } else {
             throw new Exception('Invalid action.');
         }
+    }
+
+    /**
+     * Analise requested FixVersion to identify requested branches
+     *
+     * @throws Exception
+     * @throws UserException
+     */
+    protected function _analiseRequest()
+    {
+        if (!Config\Project::getGitBranchLow() || !Config\Project::getGitBranchTop()) {
+            $fixVersion = Config\Project::getJiraTargetFixVersion();
+            if (!$fixVersion) {
+                throw new UserException('Please set your target FixVersion at least.');
+            }
+
+            //check aliases
+            $versionAliases = Config::getInstance()->getData('app/vcs/version/alias');
+            if (isset($versionAliases[$fixVersion])) {
+                if (!isset($versionAliases[$fixVersion]['branch_top'])
+                    || !isset($versionAliases[$fixVersion]['branch_low'])
+                ) {
+                    throw new UserException('Please specify your branch top and branch low.');
+                }
+                $branchTop = $versionAliases[$fixVersion]['branch_top'];
+                $branchLow = $versionAliases[$fixVersion]['branch_low'];
+            } else {
+                //match branches from VCS
+                $version = $this->_getJiraTargetFixVersionNumber();
+                $branches = $this->getVcs()->runInProjectDir('git branch -a');
+                $versionPrefixInBranch = Config::getInstance()->getData('app/vcs/version/prefix_in_branch');
+                $regular = '~[\S]*?' . $versionPrefixInBranch . str_replace('.', '\.', $version) . '~';
+                preg_match($regular, $branches, $matches);
+                if (!$matches) {
+                    throw new UserException("Branch with version '$version' not found.");
+                }
+                $branchTop = $matches[0];
+                if (false !== strpos($branchTop, 'hotfix')) {
+                    $branchLow = 'master';
+                } elseif (false !== strpos($branchTop, 'release')) {
+                    $branchLow = 'master';
+                } else {
+                    throw new UserException("Branch with version '$version' not found.");
+                }
+            }
+            Config\Project::setGitBranchTop($branchTop);
+            Config\Project::setGitBranchLow($branchLow);
+        }
+    }
+
+    /**
+     * Get JIRA target fix version number
+     *
+     * @throws Exception
+     * @throws UserException
+     * @return string
+     */
+    protected function _getJiraTargetFixVersionNumber()
+    {
+        $prefix = Config::getInstance()->getData('app/vcs/version/prefix');
+        $fixVersion = Config\Project::getJiraTargetFixVersion();
+        if (false === strpos($fixVersion, $prefix)) {
+            throw new UserException("Please use prefix '$prefix' in in the FixVersion name '$fixVersion'.");
+        }
+        return substr($fixVersion, strlen($prefix));
     }
 
     /**

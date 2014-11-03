@@ -26,8 +26,19 @@ app:
     version:
       prefix: v
       prefix_in_branch:
+
+      #veresion alias for branch (fixVersion=>branch, e.g.: someFixVersion=>custom-branch)
       alias:
-        develop: v.develop
+        v.develop:
+          branch_top: develop
+          branch_low: master
+
+    #TODO Implement using git flow settings
+    git_flow:
+      hotfix: hotfix/
+      release: release/
+      develop: develop
+      master: master
 
   jira:
     #JQLs list grouped by action
