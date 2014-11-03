@@ -13,9 +13,12 @@ app:
       low: app/git/branch_low
       top: app/git/branch_top
       ver: app/jira/jql/alias/target_fix_version
-      i: app/jira/jql/alias/target_fix_version_in_progress
+      in-progress: app/jira/jql/alias/target_fix_version_in_progress
+      i: app/jira/jql/alias/target_fix_version_in_progress #alias
       force-remote: app/vcs/remote/force_using
+      r: app/vcs/remote/force_using #alias
       debug: app/debug_mode
+      d: app/debug_mode #alias
 
   #Config for branches and versions in VCS
   vcs:
