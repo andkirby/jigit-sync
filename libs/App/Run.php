@@ -337,6 +337,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      *
      * @throws Exception
      * @throws UserException
+     * @todo Refactor this method
      */
     protected function _analiseRequest()
     {
