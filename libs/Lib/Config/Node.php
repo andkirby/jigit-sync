@@ -158,6 +158,41 @@ class Node extends \Zend_Config
     }
 
     /**
+     * Get element as string
+     *
+     * @param string|null $key
+     * @param string      $delimiter
+     * @return $this|Node|mixed|string
+     */
+    public function getDataString($key = null, $delimiter = ', ')
+    {
+        $data = $this->getData($key);
+        if (null === $key) {
+            foreach ($data as $key => $value) {
+                $data[$key] = $this->_convertToString($value, $delimiter);
+            }
+        } else {
+            $data = $this->_convertToString($data, $delimiter);
+        }
+        return $data;
+    }
+
+    /**
+     * Convert array to string via joining with delimiter
+     *
+     * @param array|string $value
+     * @param string $delimiter
+     * @return string
+     */
+    protected function _convertToString($value, $delimiter = ', ')
+    {
+        if (is_array($value)) {
+            $value = implode($delimiter, $value);
+        }
+        return $value;
+    }
+
+    /**
      * Set data
      *
      * @param string $key

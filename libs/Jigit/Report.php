@@ -190,13 +190,17 @@ class Report
         $branches = Config\Project::getGitBranchLow()
             . ' -> ' . Config\Project::getGitBranchTop();
         $project = Config\Project::getJiraProject();
-        $this->_getOutput()->enableDecorator(true, true)
-            ->add("Project:             {$project}")
-//            ->add("Compare:             " . $branches)
-//            ->add("Target FixVersion:   " . Config\Project::getJiraTargetFixVersion())
-//            ->add("Version in progress: $inProgress")
-//            ->add("Sprint:              " . Config\Project::getJiraActiveSprints())
-            ->disableDecorator();
+        $output = $this->_getOutput();
+        $output->enableDecorator(true, true)
+            ->add("Project:             {$project}");
+        if ($branches) {
+            $output
+                ->add("Compare:             " . $branches)
+                ->add("Target FixVersion:   " . Config\Project::getJiraTargetFixVersion())
+                ->add("Version in progress: $inProgress")
+                ->add("Sprint:              " . Config\Project::getJiraActiveSprints());
+        }
+        $output->disableDecorator();
         return $this;
     }
 

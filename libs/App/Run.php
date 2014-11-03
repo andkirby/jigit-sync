@@ -17,6 +17,7 @@ use \Jigit\Config\Reader as Reader;
 use \Jigit\Jira as JigitJira;
 use \chobie\Jira as Jira;
 use Jigit\UserException;
+use Lib\Config as LibConfig;
 
 /**
  * Class Run
@@ -350,37 +351,16 @@ class Run implements Dispatcher\InterfaceDispatcher
             throw new UserException('Please set your target FixVersion at least.');
         }
 
-        //check aliases
-        $versionAliases = Config::getInstance()->getData('app/vcs/version/alias');
-        if (isset($versionAliases[$fixVersion])) {
-            if (!isset($versionAliases[$fixVersion]['branch_top'])
-                || !isset($versionAliases[$fixVersion]['branch_low'])
-            ) {
-                throw new UserException('Please specify your branch top and branch low.');
-            }
-            $branchTop = $versionAliases[$fixVersion]['branch_top'];
-            $branchLow = $versionAliases[$fixVersion]['branch_low'];
-        } else {
-            //match branches from VCS
-            $version = $this->_getJiraTargetFixVersionNumber();
-            $branches = $this->getVcs()->runInProjectDir('git branch -a');
-            $versionPrefixInBranch = Config::getInstance()->getData('app/vcs/version/prefix_in_branch');
-            $regular = '~[\S]*?' . $versionPrefixInBranch . str_replace('.', '\.', $version) . '~';
-            preg_match($regular, $branches, $matches);
-            if (!$matches) {
-                throw new UserException("Branch with version '$version' not found.");
-            }
-            $branchTop = $matches[0];
-            if (false !== strpos($branchTop, 'hotfix')) {
-                $branchLow = 'master';
-            } elseif (false !== strpos($branchTop, 'release')) {
-                $branchLow = 'master';
-            } else {
-                throw new UserException("Branch with version '$version' not found.");
-            }
+        $branches = $this->_getBranchesFromFixVersionAlias($fixVersion);
+
+        if (!$branches) {
+            $branches = $this->_getBranchesFromVcs();
         }
-        Config\Project::setGitBranchTop($branchTop);
-        Config\Project::setGitBranchLow($branchLow);
+        if (!$branches) {
+            throw new UserException("Branch for FixVersion '$fixVersion' not found.");
+        }
+        Config\Project::setGitBranchTop($branches['branch_top']);
+        Config\Project::setGitBranchLow($branches['branch_low']);
         return $this;
     }
 
@@ -442,9 +422,63 @@ class Run implements Dispatcher\InterfaceDispatcher
     protected function _mergeProjectConfig()
     {
         $jiraConfig = Config::getInstance()->getData('project/' . $this->_project, false);
-        if ($jiraConfig instanceof Config\Node) {
+        if ($jiraConfig instanceof LibConfig\Node) {
             Config::getInstance()->getData('app', false)->merge($jiraConfig);
         }
         return $this;
+    }
+
+    /**
+     * Get branches from FixVersion alias
+     *
+     * @param string $fixVersion
+     * @return array|null
+     * @throws Exception
+     * @throws UserException
+     */
+    protected function _getBranchesFromFixVersionAlias($fixVersion)
+    {
+        //check aliases
+        $versionAliases = Config::getInstance()->getData('app/vcs/version/alias');
+        if (!isset($versionAliases[$fixVersion])) {
+            return null;
+        }
+        if (!isset($versionAliases[$fixVersion]['branch_top'])
+            || !isset($versionAliases[$fixVersion]['branch_low'])
+        ) {
+            throw new UserException('Please specify your branch top and branch low.');
+        }
+        return $versionAliases[$fixVersion];
+    }
+
+    /**
+     * Match branches from VCS
+     *
+     * @return array
+     * @throws Exception
+     * @throws UserException
+     */
+    protected function _getBranchesFromVcs()
+    {
+        $version               = $this->_getJiraTargetFixVersionNumber();
+        $branchesList          = $this->getVcs()->runInProjectDir('git branch -a');
+        $versionPrefixInBranch = Config::getInstance()->getData('app/vcs/version/prefix_in_branch');
+        $regular               = '~[\S]*?' . $versionPrefixInBranch . str_replace('.', '\.', $version) . '~';
+        preg_match($regular, $branchesList, $matches);
+        if (!$matches) {
+            return null;
+        }
+        $branchTop = $matches[0];
+        if (false !== strpos($branchTop, 'hotfix')) {
+            $branchLow = 'master';
+        } elseif (false !== strpos($branchTop, 'release')) {
+            $branchLow = 'master';
+        } else {
+            return null;
+        }
+        return array(
+            'branch_low' => $branchLow,
+            'branch_top' => $branchTop
+        );
     }
 }
