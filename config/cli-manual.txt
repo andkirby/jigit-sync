@@ -6,12 +6,14 @@
     push-tasks - pushed tasks to done which added to a given version.
 
   Parameters
-    p        - Project key.
-    top      - Target VCS branch/tag to compare with low branch.
-    low      - VCS low branch/tag to compare with fix version branch.
-    ver      - Target FixVersion name.
-    i        - Releasing status of the given FixVersion.
-    debug    - Debug mode.
+    p             - Project key.
+    top           - Target VCS branch/tag to compare with low branch.
+    low           - VCS low branch/tag to compare with fix version branch.
+    ver           - Target FixVersion name.
+    i             - Releasing status of the given FixVersion.
+    debug         - Debug mode.
+    force-remote  - Use only remote branches
+                    (it doesn't work with tags. Please run "git fetch --all" in GIT)
 
   Examples:
     Check issues w/o FixVersion:
@@ -20,5 +22,5 @@
     Add required FixVersion into issues:
       php jira.php push-tasks p=prj update
 
-    Add required FixVersion into issues:
+    Add report of issues in the given FixVersion:
         php jira.php report p=prj ver=1.0.43 low=master top=hotfix/1.0.43
