@@ -14,10 +14,16 @@ app:
       top: app/git/branch_top
       ver: app/jira/jql/alias/target_fix_version
       i: app/jira/jql/alias/target_fix_version_in_progress
+      force-remote: app/vcs/remote/force_using
       debug: app/debug_mode
 
   #Config for branches and versions in VCS
   vcs:
+    remote:
+      #use remote repository name to identify branch when it does not exist locally
+      name: origin
+      #force using remote name (usually it has name "origin") even local branch does exist
+      force_using: 0
     branch:
       master: master
       develop: develop
