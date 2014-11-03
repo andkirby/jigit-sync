@@ -351,10 +351,9 @@ class Run implements Dispatcher\InterfaceDispatcher
             throw new UserException('Please set your target FixVersion at least.');
         }
 
-        $branches = $this->_getBranchesFromFixVersionAlias($fixVersion);
-
+        $branches = $this->_getBranchesFromFixVersionAliasByFixVersion($fixVersion);
         if (!$branches) {
-            $branches = $this->_getBranchesFromVcs();
+            $branches = $this->_getBranchesFromVcsByFixVersion($fixVersion);
         }
         if (!$branches) {
             throw new UserException("Branch for FixVersion '$fixVersion' not found.");
@@ -367,18 +366,73 @@ class Run implements Dispatcher\InterfaceDispatcher
     /**
      * Get JIRA target fix version number
      *
+     * @param string $fixVersion
      * @throws Exception
      * @throws UserException
      * @return string
      */
-    protected function _getJiraTargetFixVersionNumber()
+    protected function _getJiraTargetFixVersionNumber($fixVersion)
     {
         $prefix = Config::getInstance()->getData('app/vcs/version/prefix');
-        $fixVersion = Config\Project::getJiraTargetFixVersion();
         if (false === strpos($fixVersion, $prefix)) {
             throw new UserException("Please use prefix '$prefix' in in the FixVersion name '$fixVersion'.");
         }
         return substr($fixVersion, strlen($prefix));
+    }
+
+    /**
+     * Get branches from FixVersion alias
+     *
+     * @param string $fixVersion
+     * @return array|null
+     * @throws Exception
+     * @throws UserException
+     */
+    protected function _getBranchesFromFixVersionAliasByFixVersion($fixVersion)
+    {
+        //check aliases
+        $versionAliases = Config::getInstance()->getData('app/vcs/version/alias');
+        if (!isset($versionAliases[$fixVersion])) {
+            return null;
+        }
+        if (!isset($versionAliases[$fixVersion]['branch_top'])
+            || !isset($versionAliases[$fixVersion]['branch_low'])
+        ) {
+            throw new UserException('Please specify your branch top and branch low.');
+        }
+        return $versionAliases[$fixVersion];
+    }
+
+    /**
+     * Match branches from VCS
+     *
+     * @param string $fixVersion
+     * @throws Exception
+     * @throws UserException
+     * @return array
+     */
+    protected function _getBranchesFromVcsByFixVersion($fixVersion)
+    {
+        $version               = $this->_getJiraTargetFixVersionNumber($fixVersion);
+        $branchesList          = $this->getVcs()->runInProjectDir('git branch -a');
+        $versionPrefixInBranch = Config::getInstance()->getData('app/vcs/version/prefix_in_branch');
+        $regular               = '~[\S]*?' . $versionPrefixInBranch . str_replace('.', '\.', $version) . '~';
+        preg_match($regular, $branchesList, $matches);
+        if (!$matches) {
+            return null;
+        }
+        $branchTop = $matches[0];
+        if (false !== strpos($branchTop, 'hotfix')) {
+            $branchLow = 'master';
+        } elseif (false !== strpos($branchTop, 'release')) {
+            $branchLow = 'master';
+        } else {
+            return null;
+        }
+        return array(
+            'branch_low' => $branchLow,
+            'branch_top' => $branchTop
+        );
     }
 
     /**
@@ -426,59 +480,5 @@ class Run implements Dispatcher\InterfaceDispatcher
             Config::getInstance()->getData('app', false)->merge($jiraConfig);
         }
         return $this;
-    }
-
-    /**
-     * Get branches from FixVersion alias
-     *
-     * @param string $fixVersion
-     * @return array|null
-     * @throws Exception
-     * @throws UserException
-     */
-    protected function _getBranchesFromFixVersionAlias($fixVersion)
-    {
-        //check aliases
-        $versionAliases = Config::getInstance()->getData('app/vcs/version/alias');
-        if (!isset($versionAliases[$fixVersion])) {
-            return null;
-        }
-        if (!isset($versionAliases[$fixVersion]['branch_top'])
-            || !isset($versionAliases[$fixVersion]['branch_low'])
-        ) {
-            throw new UserException('Please specify your branch top and branch low.');
-        }
-        return $versionAliases[$fixVersion];
-    }
-
-    /**
-     * Match branches from VCS
-     *
-     * @return array
-     * @throws Exception
-     * @throws UserException
-     */
-    protected function _getBranchesFromVcs()
-    {
-        $version               = $this->_getJiraTargetFixVersionNumber();
-        $branchesList          = $this->getVcs()->runInProjectDir('git branch -a');
-        $versionPrefixInBranch = Config::getInstance()->getData('app/vcs/version/prefix_in_branch');
-        $regular               = '~[\S]*?' . $versionPrefixInBranch . str_replace('.', '\.', $version) . '~';
-        preg_match($regular, $branchesList, $matches);
-        if (!$matches) {
-            return null;
-        }
-        $branchTop = $matches[0];
-        if (false !== strpos($branchTop, 'hotfix')) {
-            $branchLow = 'master';
-        } elseif (false !== strpos($branchTop, 'release')) {
-            $branchLow = 'master';
-        } else {
-            return null;
-        }
-        return array(
-            'branch_low' => $branchLow,
-            'branch_top' => $branchTop
-        );
     }
 }
