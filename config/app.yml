@@ -143,6 +143,7 @@ app:
               %top_level_issues%
               %non_dev_issue_types%
           subIssuesHaveNotFixVersion:
+#            TODO implement using affectedVersion in making report.
             message: >
               Sub-tasks which added to parent which in a released version.
               They must have fixVersion or have to pushed to proper status.
