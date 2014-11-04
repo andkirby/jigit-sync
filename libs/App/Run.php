@@ -7,15 +7,15 @@
  */
 
 namespace App;
-use \Jigit\Dispatcher;
-use \Jigit\Config;
+use chobie\Jira as Jira;
+use Jigit\Config;
+use Jigit\Config\Reader as Reader;
+use Jigit\Dispatcher;
 use Jigit\Exception;
-use \Jigit\Output;
-use \Jigit\Report;
-use \Jigit\Git;
-use \Jigit\Config\Reader as Reader;
-use \Jigit\Jira as JigitJira;
-use \chobie\Jira as Jira;
+use Jigit\Git;
+use Jigit\Jira as JigitJira;
+use Jigit\Output;
+use Jigit\Report;
 use Jigit\UserException;
 use Lib\Config as LibConfig;
 
@@ -462,9 +462,9 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     protected function _getBranchesFromVcsByFixVersion($fixVersion)
     {
-        $startRegular = '[\S]*?';
+        $startRegular = '(remotes\/)?[\S]*?';
         if (Config\Project::getVcsForceRemoteStatus()) {
-            $startRegular = 'remotes\/';
+            $startRegular = '(remotes\/)[\S]*?';
         }
         $branchLow = Config\Project::getGitBranchLow();
         $version      = $this->_getJiraTargetFixVersionNumber($fixVersion);
@@ -475,8 +475,8 @@ class Run implements Dispatcher\InterfaceDispatcher
             . '(\S*?'. $versionPrefixInBranch . str_replace('.', '\.', $version) . ').*~';
         preg_match($regular, $branchesList, $matches);
 
-        if ($matches) {
-            $branchTop = $matches[0];
+        if ($matches && !empty($matches[2])) {
+            $branchTop = $matches[2];
             if (!$branchLow) {
                 if (false !== strpos($branchTop, 'hotfix')) {
                     $branchLow = 'master';
