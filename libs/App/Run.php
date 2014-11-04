@@ -326,6 +326,9 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     protected function _processAction()
     {
+        $report = new Report();
+        $report->setApi($this->_getApi())
+            ->setVcs($this->getVcs());
         if (self::ACTION_REPORT == $this->_action) {
             //ignore invalid commits (which does not have issue key)
             $this->getVcs()->setCheckNotValidCommits(
@@ -340,10 +343,7 @@ class Run implements Dispatcher\InterfaceDispatcher
             $this->getOutput()->add('Found issues in VCS:');
             $this->getOutput()->add(implode(', ', $gitKeys));
 
-            $report = new Report();
             $report->make(
-                $this->_getApi(),
-                $this->getVcs(),
                 $this->_getJqls($gitKeys, $this->_action)
             );
         } elseif (self::ACTION_PUSH_TASKS == $this->_action) {
@@ -353,10 +353,7 @@ class Run implements Dispatcher\InterfaceDispatcher
 
             $this->setProjectInfoOutput();
 
-            $report = new Report();
             $report->makePushReport(
-                $this->_getApi(),
-                $this->getVcs(),
                 $this->_getJqls(null, $this->_action)
             );
         } else {

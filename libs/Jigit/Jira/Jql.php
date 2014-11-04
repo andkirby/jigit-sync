@@ -9,6 +9,7 @@ namespace Jigit\Jira;
 
 use Jigit\Config;
 use Jigit\Config\Project as ConfigProject;
+use Jigit\Exception;
 use Jigit\Jira\Jql\Filter;
 
 /**
@@ -71,7 +72,7 @@ class Jql
 
         $jqls = $this->_filterJqls(
             $jqls,
-            $this->_getJqlSetting(),
+            $this->_getJqlAlias(),
             $this->getJqlsWhiteList()
         );
         return $jqls;
@@ -95,7 +96,7 @@ class Jql
      * @param string $key
      * @return string|null|array
      */
-    protected function _getJqlSetting($key = null)
+    protected function _getJqlAlias($key = null)
     {
         if (null === $this->_settings) {
             $this->_settings = ConfigProject::getJiraJqlAliases();
@@ -171,13 +172,17 @@ class Jql
      * @param array $jqls
      * @param array $filterData
      * @param array $whiteList
+     * @throws Exception
      * @return array
      */
     protected function _filterJqls($jqls, $filterData, $whiteList)
     {
         $filter     = $this->_getFilter();
         foreach ($jqls as $type => &$item) {
-            if (!$whiteList && in_array($type, $whiteList)) {
+            if (!$whiteList || in_array($type, $whiteList)) {
+                if (!$item['jql']) {
+                    throw new Exception("Empty JQL of type '$type'.");
+                }
                 $jql         = $this->_getDraftJqlString($item);
                 $item['jql'] = $filter->filter($jql, $filterData);
             }

@@ -77,6 +77,7 @@ app:
                   (affectedVersion != %target_fix_version% OR affectedVersion is EMPTY)
                 )
           inBranchWithoutFixVersion:
+            helper: withoutFixVersion
             in_progress: -1
             message: Has no fix version.
             jql: |
@@ -91,6 +92,7 @@ app:
                       (issueFunction IN parentsOf("project = %project% AND key IN (%vcs_keys%)"))
                   )
           notAffectsCodeWithFixVersion:
+            helper: notAffectsCode
             in_progress: -1
             message: Issues which did not affect the code.
             jql: |
@@ -128,12 +130,20 @@ app:
             in_progress: 0
             message: Parent issue has commit.
             jql: |
-
+              project = %project%
+              AND (
+                  (affectedVersion != %target_fix_version% OR affectedVersion is EMPTY)
+                  AND status IN (Open, Reopened, 'In Progress')
+              )
+              AND type NOT IN ('Sub-Task Task', 'Sub-Task Question')
+              AND key IN (%vcs_keys%)
           notInSprint:
             in_progress: 1
             message: Parent issue has commit.
             jql: |
-
+              project = %project%
+              (AND Sprint NOT IN (%active_sprints%) OR Sprint IS EMPTY)
+              AND key IN (%vcs_keys%)
         push-tasks: #"push-tasks" action to check and update fixVersion
           issuesHaveNotFixVersion:
             message: Issues which must have fixVersion.
