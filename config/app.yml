@@ -21,9 +21,12 @@ app:
       d: app/debug_mode #alias
       filter: app/jira/jql/filter_jql
       f: app/jira/jql/filter_jql #alias
+      bad-commit: app/vcs/bad_commit_check
+      c: app/vcs/bad_commit_check
 
   #Config for branches and versions in VCS
   vcs:
+    bad_commit_check: 1
     remote:
       #use remote repository name to identify branch when it does not exist locally
       name: origin

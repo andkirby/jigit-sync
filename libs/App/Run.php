@@ -327,6 +327,11 @@ class Run implements Dispatcher\InterfaceDispatcher
     protected function _processAction()
     {
         if (self::ACTION_REPORT == $this->_action) {
+            //ignore invalid commits (which does not have issue key)
+            $this->getVcs()->setCheckNotValidCommits(
+                Config::getInstance()->getData('app/vcs/bad_commit_check')
+            );
+
             $this->analiseRequest();
             $this->setProjectInfoOutput();
 
@@ -342,6 +347,10 @@ class Run implements Dispatcher\InterfaceDispatcher
                 $this->_getJqls($gitKeys, $this->_action)
             );
         } elseif (self::ACTION_PUSH_TASKS == $this->_action) {
+            //ignore invalid commits (which does not have issue key)
+            //skip this because we need to work with issue keys only
+            $this->getVcs()->setCheckNotValidCommits(false);
+
             $this->setProjectInfoOutput();
 
             $report = new Report();
@@ -403,7 +412,7 @@ class Run implements Dispatcher\InterfaceDispatcher
             $branches = $this->_getBranchesFromVcsByFixVersion($fixVersion);
         }
         if (!$branches) {
-            throw new UserException("Branch for FixVersion '$fixVersion' not found.");
+            throw new UserException("Branch for FixVersion '$fixVersion' not found. Please set it manually.");
         }
         Config\Project::setGitBranchTop($branches['branch_top']);
         Config\Project::setGitBranchLow($branches['branch_low']);

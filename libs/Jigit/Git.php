@@ -7,9 +7,9 @@
  */
 
 namespace Jigit;
-use \Jigit\Config;
-use \Jigit\Vcs\InterfaceVcs;
-use \Jigit\Dispatcher\InterfaceDispatcher;
+use Jigit\Config;
+use Jigit\Dispatcher\InterfaceDispatcher;
+use Jigit\Vcs\InterfaceVcs;
 
 /**
  * GIT adapter
@@ -38,6 +38,35 @@ class Git implements InterfaceVcs
      * @var array
      */
     protected $_commits;
+
+    /**
+     * Status of ignoring wrong commits
+     *
+     * @var bool
+     */
+    protected $_checkWrongCommits = false;
+
+    /**
+     * Get status of checking wrong commits
+     *
+     * @return boolean
+     */
+    public function isCheckWrongCommits()
+    {
+        return $this->_checkWrongCommits;
+    }
+
+    /**
+     * Set check wrong commits status
+     *
+     * @param bool $ignoreWrongCommits
+     * @return $this
+     */
+    public function setCheckNotValidCommits($ignoreWrongCommits)
+    {
+        $this->_checkWrongCommits = $ignoreWrongCommits;
+        return $this;
+    }
 
     /**
      * Get JIRA keys from range
@@ -99,6 +128,18 @@ class Git implements InterfaceVcs
     public function getTags($reverse = true)
     {
         $tags = explode("\n", trim($this->runInProjectDir('tag -l')));
+        return $this->_sortTags($reverse, $tags);
+    }
+
+    /**
+     * Sort tags
+     *
+     * @param bool $reverse
+     * @param array $tags
+     * @return array
+     */
+    protected function _sortTags($reverse, $tags)
+    {
         //@startSkipCommitHooks
         $callFunction = function ($a, $b) {
             return -1 * version_compare($a, $b);
@@ -107,6 +148,7 @@ class Git implements InterfaceVcs
         usort($tags, $callFunction);
         if ($reverse) {
             $tags = array_reverse($tags);
+            return $tags;
         }
         return $tags;
     }
@@ -139,7 +181,10 @@ class Git implements InterfaceVcs
             $info = $this->_getCommitInfo($commit);
             $issueKey = $this->_getIssueKey($project, $info['message']);
             if (!$issueKey) {
-                throw new UserException("Issue key is not set for hash '{$info['hash']}' of {$info['author']}.");
+                if ($this->isCheckWrongCommits()) {
+                    throw new UserException("Issue key is not set for hash '{$info['hash']}' of {$info['author']}.");
+                }
+                continue;
             }
             $keys[$issueKey]['hash'][$info['author']][] = $info['hash'];
         }
@@ -149,15 +194,23 @@ class Git implements InterfaceVcs
     /**
      * Get issue key
      *
-     * @param string $project   Project key
-     * @param string $message   Commit message
+     * @param string $project Project key
+     * @param string $message Commit message
+     * @throws Exception
      * @return mixed
      */
     protected function _getIssueKey($project, $message)
     {
         $matches = array();
         preg_match('/' . $project . '-[0-9]+/', $message, $matches);
-        return $matches[0];
+        if (isset($matches[0])) {
+            return $matches[0];
+        }
+        if ($this->isCheckWrongCommits()) {
+            throw new Exception("Invalid commit message '$message'.");
+        } else {
+            return null;
+        }
     }
 
     /**
