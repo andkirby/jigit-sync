@@ -106,23 +106,10 @@ class Report
             $jqlItem['type'] = $type;
             $this->_debugJqlItem($jqlItem);
             $helper = $this->_getJqlHelper($jqlItem);
-            $jql = $jqlItem['jql'];
             if ($helper->canProcessJql($type)) {
                 continue;
             }
-
-            /** @var Jira\Api\Result $result */
-            $result = $this->getApi()->search($jql);
-
-            if (!$result->getTotal()) {
-                continue;
-            }
-            /** @var Jira\Issue $issue */
-            foreach ($result->getIssues() as $issue) {
-                if ($helper->canHandleIssue($type, $issue)) {
-                    $helper->handleIssue($type, $issue);
-                }
-            }
+            $helper->process($type);
         }
 
         $found = false;
@@ -159,7 +146,7 @@ class Report
 
             $issueKeys = array_keys($issues);
             if ($issueKeys) {
-                $keys = JigitJira\KeysFormatter::format(implode(', ', $issueKeys));
+                $keys = implode(', ', $issueKeys);
                 $this->_getOutput()->add('Found JIRA issues: ' . PHP_EOL . $keys);
             } else {
                 $this->_getOutput()->add('No JIRA issues found.');

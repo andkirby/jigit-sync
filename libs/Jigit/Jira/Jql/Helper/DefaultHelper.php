@@ -115,6 +115,29 @@ class DefaultHelper
     }
 
     /**
+     * Process request
+     *
+     * @param string $type JQL type
+     * @return $this
+     */
+    public function process($type)
+    {
+        /** @var Api\Result $result */
+        $result = $this->getApi()->search($this->_jql[$type]);
+        if (!$result->getTotal()) {
+            return $this;
+        }
+
+        /** @var Issue $issue */
+        foreach ($result->getIssues() as $issue) {
+            if ($this->canHandleIssue($type, $issue)) {
+                $this->handleIssue($type, $issue);
+            }
+        }
+        return $this;
+    }
+
+    /**
      * Handle issue
      *
      * @param string $type
