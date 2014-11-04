@@ -145,7 +145,6 @@ class Report
 
             $result = $this->_queryPushTasksJql($api, $jqlItem);
             $issues = $this->_getIssues($result);
-            $issues = array('HAS-4457' => $issues['HAS-4459']);
 
             $issueKeys = array_keys($issues);
             if ($issueKeys) {
