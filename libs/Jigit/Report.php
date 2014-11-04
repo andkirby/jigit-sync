@@ -8,10 +8,10 @@
 
 namespace Jigit;
 
-use \Jigit\Config;
-use \chobie\Jira as Jira;
-use \Jigit\Jira as JigitJira;
+use chobie\Jira as Jira;
+use Jigit\Config;
 use Jigit\Dispatcher\InterfaceDispatcher;
+use Jigit\Jira as JigitJira;
 
 /**
  * Class Report
@@ -143,37 +143,65 @@ class Report
             $this->_getOutput()->disableDecorator();
             $this->_debugJqlItem($jqlItem);
 
-            $issueKeys = $this->_getIssueKeys($api, $jqlItem);
+            $result = $this->_queryPushTasksJql($api, $jqlItem);
+            $issues = $this->_getIssues($result);
+            $issues = array('HAS-4457' => $issues['HAS-4459']);
+
+            $issueKeys = array_keys($issues);
             if ($issueKeys) {
                 $keys = JigitJira\KeysFormatter::format(implode(', ', $issueKeys));
                 $this->_getOutput()->add('Found JIRA issues: ' . PHP_EOL . $keys);
             } else {
-                $this->_getOutput()->add('Found JIRA issues: -');
+                $this->_getOutput()->add('No JIRA issues found.');
                 continue;
             }
 
             $vcsIssues = $this->_findIssuesInVcs($vcs, $issueKeys, $keys);
 
+            $issuesNotFound = $issues;
             $issueKeyIdsInTags = array();
             foreach ($vcsIssues as $tag => $ids) {
                 foreach ($ids as $id) {
                     $issueKeyIdsInTags[$id][] = $tag;
-                    unset($issueKeys[$id]);
+                    unset($issuesNotFound[$id]);
                 }
             }
 
             if ($issueKeyIdsInTags) {
                 $this->_getOutput()->addDelimiter();
-                $this->_getOutput()->add('Following issues should get fix version(s):');
-                $project = Config\Project::getJiraProject();
-                foreach ($issueKeyIdsInTags as $issueKeyId => $versions) {
-                    $this->_getOutput()->add("$project-$issueKeyId: " . implode(', ', $versions));
+                $issueResults = array();
+                //check exists fixVersion
+                foreach ($issueKeyIdsInTags as $id => $versions) {
+                    $affectsVersions = $this->_getIssueAffectsVersions($issues[$id]);
+                    $fixVersions = $this->_getIssueAffectsVersions($issues[$id]);
+                    foreach ($versions as $v => $version) {
+                        if (in_array($version, $affectsVersions)
+                            || in_array($version, $fixVersions)
+                        ) {
+                            //TODO check versions from parent
+                            unset($versions[$v]);
+                        }
+                    }
+                    if ($versions) {
+                        $issueResults[] = "$id: " . implode(', ', $versions);
+                    } else {
+                        unset($issuesNotFound[$id]);
+                    }
+                }
+                //add report
+                if ($issueResults) {
+                    $this->_getOutput()->add('Following issues should get version(s):');
+                    foreach ($issueResults as $output) {
+                        $this->_getOutput()->add($output);
+                    }
                 }
             }
-            if ($issueKeys) {
+
+            //add report about not exists issues
+            if ($issuesNotFound) {
                 $this->_getOutput()->addDelimiter();
                 $this->_getOutput()->add('Following issues were not found in VCS:');
-                $keys = JigitJira\KeysFormatter::format(implode(', ', $issueKeys));
+                $keys = JigitJira\KeysFormatter::format(implode(', ', $issuesNotFound));
                 $this->_getOutput()->add($keys);
             }
         }
@@ -239,20 +267,17 @@ class Report
     /**
      * Get issue keys
      *
-     * @param Jira\Api $api
-     * @param array    $jqlItem
+     * @param Jira\Api\Result $result
      * @return array
      */
-    protected function _getIssueKeys(Jira\Api $api, $jqlItem)
+    protected function _getIssues($result)
     {
         $issueKeys = array();
-        /** @var Jira\Api\Result $result */
-        $result = $api->search($jqlItem['jql'], 0, 300, 'issuekey, fixVersion');
         if ($result->getIssuesCount()) {
             /** @var Jira\Issue $issue */
             foreach ($result->getIssues() as $issue) {
-                list(, $id) = explode('-', $issue->getKey());
-                $issueKeys[$id] = $issue->getKey();
+//                list(, $id) = explode('-', $issue->getKey());
+                $issueKeys[$issue->getKey()] = $issue;
             }
         }
         return $issueKeys;
@@ -286,15 +311,16 @@ class Report
         $vcsIssues         = array();
         $tags              = $this->_getVcsTags($vcs);
         $prevTag           = array_shift($tags);
-        $issueKeyIdsString = implode('|', array_keys($issueKeys));
+        $issueKeyIdsString = implode('|', $issueKeys);
         $project           = Config\Project::getJiraProject();
         foreach ($tags as $tag) {
             Config::addDebug("Find issues between: $prevTag..$tag");
+//                "log $prevTag..$tag --no-merges --reverse --oneline | grep -E \"$project-($issueKeyIdsString)\""
             $result = $vcs->runInProjectDir(
-                "log $prevTag..$tag --no-merges --reverse --oneline | grep -E \"$project-($issueKeyIdsString)\""
+                "log $prevTag..$tag --no-merges --reverse --oneline | grep -E \"($issueKeyIdsString)\""
             );
             if ($result) {
-                preg_match_all('/\s' . $project . '-(\d+)/', $result, $keys);
+                preg_match_all('/\s(' . $project . '-\d+)/', $result, $keys);
                 $vcsIssues[$tag] = array_unique($keys[1]);
                 Config::addDebug(
                     "Result GIT searching for tag '$tag': "
@@ -543,5 +569,19 @@ class Report
         $strIssue[]        = "Sprint:            {$sprint}";
         $strIssue[]        = "Author/s:          {$authors}";
         return $strIssue;
+    }
+
+    /**
+     * Query push tasks
+     *
+     * @param Jira\Api $api
+     * @param array    $jqlItem
+     * @return Jira\Api\Result
+     */
+    protected function _queryPushTasksJql(Jira\Api $api, $jqlItem)
+    {
+        /** @var Jira\Api\Result $result */
+        $result = $api->search($jqlItem['jql'], 0, 300/*, 'issuekey,ixVersion,affectedVersion'*/);
+        return $result;
     }
 }
