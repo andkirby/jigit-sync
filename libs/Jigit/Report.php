@@ -41,16 +41,18 @@ class Report
          */
         $inDifferentBranch = array();
         $found = false;
+        $filterJqlType = Config::getInstance()->getData('app/jira/jql/filter_jql');
         foreach ($jqlList as $type => $jqlItem) {
+            if ($filterJqlType && $type !== $filterJqlType) {
+                continue;
+            }
             $jqlItem['type'] = $type;
             $this->_debugJqlItem($jqlItem);
 
             $jql = $jqlItem['jql'];
 
             //todo Update to using "released" status in JQL
-            if (Config\Project::getJiraTargetFixVersionInProgress() && '1' !== $jqlItem['in_progress']
-                || !Config\Project::getJiraTargetFixVersionInProgress() && '0' !== $jqlItem['in_progress']
-            ) {
+            if ((int)Config\Project::getJiraTargetFixVersionInProgress() !== (int)$jqlItem['in_progress']) {
                 continue;
             }
             $showKeys = array();

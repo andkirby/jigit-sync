@@ -98,6 +98,26 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     public function run($action, array $params, $output)
     {
+        $this->initialize($action, $params, $output)
+            ->_processAction();
+        return $this;
+    }
+
+    /**
+     * Run making report
+     *
+     * @param string $action
+     * @param array  $params
+     * @param Output $output
+     * @throws Exception
+     * @throws UserException
+     * @return $this
+     */
+    public function initialize($action, array $params, $output)
+    {
+        if ($this->_project) {
+            return $this;
+        }
         $this->setOutput($output);
         $this->_checkRequestedHelp($params);
         $this->_setProject(@$params['p']);
@@ -107,7 +127,6 @@ class Run implements Dispatcher\InterfaceDispatcher
         $this->_mergeProjectConfig();
         $this->_setParams($params);
         $this->_setHeaderOutput();
-        $this->_processAction();
         return $this;
     }
 
@@ -308,8 +327,8 @@ class Run implements Dispatcher\InterfaceDispatcher
     protected function _processAction()
     {
         if (self::ACTION_REPORT == $this->_action) {
-            $this->_analiseRequest();
-            $this->_setProjectInfoOutput();
+            $this->analiseRequest();
+            $this->setProjectInfoOutput();
 
             $gitKeys = $this->_getGitKeys();
 
@@ -323,7 +342,7 @@ class Run implements Dispatcher\InterfaceDispatcher
                 $this->_getJqls($gitKeys, $this->_action)
             );
         } elseif (self::ACTION_PUSH_TASKS == $this->_action) {
-            $this->_setProjectInfoOutput();
+            $this->setProjectInfoOutput();
 
             $report = new Report();
             $report->makePushReport(
@@ -341,7 +360,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      *
      * @return $this
      */
-    protected function _setProjectInfoOutput()
+    public function setProjectInfoOutput()
     {
         $inProgress = Config\Project::getJiraTargetFixVersionInProgress() ? 'YES' : 'NO';
         $branches = Config\Project::getGitBranchLow()
@@ -369,7 +388,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      * @throws UserException
      * @todo Refactor this method
      */
-    protected function _analiseRequest()
+    public function analiseRequest()
     {
         if (Config\Project::getGitBranchLow() && Config\Project::getGitBranchTop()) {
             return $this;
@@ -447,26 +466,33 @@ class Run implements Dispatcher\InterfaceDispatcher
         if (Config\Project::getVcsForceRemoteStatus()) {
             $startRegular = 'remotes\/';
         }
+        $branchLow = Config\Project::getGitBranchLow();
         $version      = $this->_getJiraTargetFixVersionNumber($fixVersion);
         $branchesList = $this->getVcs()->runInProjectDir('git branch -a');
         Config::addDebug($branchesList);
         $versionPrefixInBranch = Config::getInstance()->getData('app/vcs/version/prefix_in_branch');
         $regular               = '~' . $startRegular
-            . '(\S*?'. $versionPrefixInBranch . str_replace('.', '\.', $version) . ')~';
+            . '(\S*?'. $versionPrefixInBranch . str_replace('.', '\.', $version) . ').*~';
         preg_match($regular, $branchesList, $matches);
 
         if ($matches) {
-            $branchTop = $matches[1];
-            if (false !== strpos($branchTop, 'hotfix')) {
-                $branchLow = 'master';
-            } elseif (false !== strpos($branchTop, 'release')) {
-                $branchLow = 'master';
-            } else {
-                return null;
+            $branchTop = $matches[0];
+            if (!$branchLow) {
+                if (false !== strpos($branchTop, 'hotfix')) {
+                    $branchLow = 'master';
+                } elseif (false !== strpos($branchTop, 'release')) {
+                    $branchLow = 'master';
+                } else {
+                    throw new UserException("Could not find low branch for branch '$branchTop'. You may set it.");
+                }
             }
-            $remoteNamePrefix = Config\Project::getVcsRemoteName();
-            if ($remoteNamePrefix) {
-                $branchLow = $remoteNamePrefix . '/' . $branchLow;
+
+            if (Config\Project::getVcsForceRemoteStatus()) {
+                //add remote name prefix
+                $remoteNamePrefix = Config\Project::getVcsRemoteName();
+                if ($remoteNamePrefix && false === strpos($branchLow, $remoteNamePrefix)) {
+                    $branchLow = $remoteNamePrefix . '/' . $branchLow;
+                }
             }
         } else {
             /**

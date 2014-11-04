@@ -19,6 +19,8 @@ app:
       r: app/vcs/remote/force_using #alias
       debug: app/debug_mode
       d: app/debug_mode #alias
+      filter: app/jira/jql/filter_jql
+      f: app/jira/jql/filter_jql #alias
 
   #Config for branches and versions in VCS
   vcs:
@@ -55,6 +57,22 @@ app:
       action:
         #General report action to identify "problem" issues
         report:
+          relasedIssuesMissedFixVersion:
+            in_progress: 0
+            message: Issues have missed fixVersion or affectedVersion (for reopened issues)
+            jql: |
+              project = HAS
+                AND (
+                  key IN (%vcs_keys%)
+                  OR
+                  issueFunction IN parentsOf(
+                    "project = %project% AND key IN (%vcs_keys%)"
+                  )
+                ) AND (
+                  (fixVersion is Empty OR fixVersion != %target_fix_version%)
+                  AND
+                  (affectedVersion != %target_fix_version% OR affectedVersion is EMPTY)
+                )
           inBranchWithoutFixVersion:
             in_progress: -1
             message: Has no fix version.
@@ -67,7 +85,7 @@ app:
                   AND (
                       (key IN (%vcs_keys%) AND type NOT IN ('Sub-Task Task'))
                       OR
-                      (issueFunction IN parentsOf(""project = %project% AND key IN (%vcs_keys%)""))
+                      (issueFunction IN parentsOf("project = %project% AND key IN (%vcs_keys%)"))
                   )
           notAffectsCodeWithFixVersion:
             in_progress: -1

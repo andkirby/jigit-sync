@@ -130,7 +130,7 @@ class Config extends \Zend_Config
             if (is_array($string)) {
                 $string = implode(', ', $string);
             }
-            self::getOutput()->add('DEBUG: ' . $string);
+            self::getOutput()->add('DEBUG: ' . $string . PHP_EOL);
         }
     }
 }
