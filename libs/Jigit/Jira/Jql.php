@@ -8,7 +8,7 @@
 namespace Jigit\Jira;
 
 use Jigit\Config;
-use \Jigit\Config\Project as ConfigProject;
+use Jigit\Config\Project as ConfigProject;
 use Jigit\Jira\Jql\Filter;
 
 /**
@@ -57,26 +57,36 @@ class Jql
     /**
      * Get JQLs
      *
-     * @param array $gitKeys
+     * @param array $vcsIssueKeys
      * @return array
      */
-    public function getJqls($gitKeys)
+    public function getJqls($vcsIssueKeys)
     {
-        if (is_array($gitKeys)) {
-            $gitKeys = implode(', ', $gitKeys);
+        if (is_array($vcsIssueKeys)) {
+            $vcsIssueKeys = implode(', ', $vcsIssueKeys);
         }
         $jqls = $this->_getDraftJqls();
-        $filter = $this->_getFilter();
-        $this->_setGitKeys($gitKeys);
-        $filterData = $this->_getJqlSetting();
-        $filterData['vcs_keys'] = $gitKeys;
-        $filterData['project'] = ConfigProject::getJiraProject();;
-//        print_r($filterData); die;
-        foreach ($jqls as &$item) {
-            $jql = $this->_getDraftJqlString($item);
-            $item['jql'] = $filter->filter($jql, $filterData);
-        }
+        $this->_setAlias('vcs_keys', $vcsIssueKeys);
+        $this->_setAlias('project', ConfigProject::getJiraProject());
+
+        $jqls = $this->_filterJqls(
+            $jqls,
+            $this->_getJqlSetting(),
+            $this->getJqlsWhiteList()
+        );
         return $jqls;
+    }
+
+    /**
+     * Get JQLs white list
+     *
+     * @return array
+     * @throws \Jigit\Exception
+     */
+    public function getJqlsWhiteList()
+    {
+        $filterJqlTypes = Config::getInstance()->getData('app/jira/jql/filter_jql');
+        return $filterJqlTypes ? explode(',', $filterJqlTypes) : array();
     }
 
     /**
@@ -101,14 +111,16 @@ class Jql
     }
 
     /**
-     * Set GIT keys
+     * Set JQL alias
      *
-     * @param array $gitKeys
+     * @param string $name
+     * @param string $value
+     * @throws \Jigit\Exception
      * @return $this
      */
-    protected function _setGitKeys($gitKeys)
+    protected function _setAlias($name, $value)
     {
-        Config::getInstance()->setData('vcs_keys', $gitKeys);
+        Config::getInstance()->setData(Config\Project::PATH_JIRA_JQL_ALIAS . '/' . $name, $value);
         return $this;
     }
 
@@ -151,5 +163,25 @@ class Jql
     protected function _getJiraJqlConfig()
     {
         return ConfigProject::getJiraJqlAliases();
+    }
+
+    /**
+     * Filter JQLs
+     *
+     * @param array $jqls
+     * @param array $filterData
+     * @param array $whiteList
+     * @return array
+     */
+    protected function _filterJqls($jqls, $filterData, $whiteList)
+    {
+        $filter     = $this->_getFilter();
+        foreach ($jqls as $type => &$item) {
+            if (!$whiteList && in_array($type, $whiteList)) {
+                $jql         = $this->_getDraftJqlString($item);
+                $item['jql'] = $filter->filter($jql, $filterData);
+            }
+        }
+        return $jqls;
     }
 }

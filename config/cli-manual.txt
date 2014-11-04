@@ -15,14 +15,15 @@
     r, force-remote       - Force using remote branches.
                             It doesn't work with tags.
                             Please run "git fetch --all" in GIT.
-    f, filter             - JQL type. Load only one JQLs.
+    f, filter             - JQL types white list.
+                            Format: type1,type2,[...],typeN
     c, bad-commit         - Status of checking bad commits
 
   Examples:
     Check issues w/o FixVersion:
       php jira.php push-tasks p=prj
 
-    Add required FixVersion into issues:
+    Add required FixVersion into issues: (not implemented yet)
       php jira.php push-tasks p=prj update
 
     Add report of issues in the given FixVersion:
