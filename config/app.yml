@@ -131,8 +131,7 @@ app:
             message: Parent issue has commit.
             jql: |
 
-        #"push-tasks" action to check and update fixVersion
-        push-tasks:
+        push-tasks: #"push-tasks" action to check and update fixVersion
           issuesHaveNotFixVersion:
             message: Issues which must have fixVersion.
             jql: |

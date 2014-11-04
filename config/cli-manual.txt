@@ -14,6 +14,7 @@
     debug             - Debug mode.
     r, force-remote   - Use only remote branches
                         (it doesn't work with tags. Please run "git fetch --all" in GIT)
+    f, filter         - JQL type. Load only one JQLs.
 
   Examples:
     Check issues w/o FixVersion:
