@@ -311,7 +311,7 @@ class Git implements InterfaceVcs
      */
     public function getHelper($name, array $options = array())
     {
-        $class = "Git\\Helper\\$name";
+        $class = __NAMESPACE__ . "\\Git\\Helper\\$name";
         /** @var Git\Helper\AbstractHelper $helper */
         $helper = new $class($options);
         $helper->setEngine($this);

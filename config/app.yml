@@ -101,7 +101,7 @@ app:
               AND key NOT IN (%vcs_keys%)
               AND resolution NOT IN (%not_affects_code_resolutions%)
               AND (labels NOT IN (%not_affects_code_labels%) OR labels IS EMPTY)
-              AND type NOT IN ('Change Request', Story, Epic)","Issues which did not affect the code.
+              AND type NOT IN ('Change Request', Story, Epic)
           parentIssueHasCommit:
             in_progress: -1
             message: Parent issue has commit.
@@ -146,6 +146,7 @@ app:
               AND key IN (%vcs_keys%)
         push-tasks: #"push-tasks" action to check and update fixVersion
           issuesHaveNotFixVersion:
+            helper: missedFixVersion
             message: Issues which must have fixVersion.
             jql: |
               project = %project%
@@ -156,6 +157,7 @@ app:
               %non_dev_issue_types%
           subIssuesHaveNotFixVersion:
 #            TODO implement using affectedVersion in making report.
+            helper: missedFixVersion
             message: >
               Sub-tasks which added to parent which in a released version.
               They must have fixVersion or have to pushed to proper status.

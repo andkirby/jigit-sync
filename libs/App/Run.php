@@ -353,7 +353,7 @@ class Run implements Dispatcher\InterfaceDispatcher
 
             $this->setProjectInfoOutput();
 
-            $report->makePushReport(
+            $report->make(
                 $this->_getJqls(null, $this->_action)
             );
         } else {
