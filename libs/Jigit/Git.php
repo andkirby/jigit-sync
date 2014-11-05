@@ -144,6 +144,7 @@ class Git implements InterfaceVcs
      * Run GIT command
      *
      * @param string $command
+     * @throws Exception
      * @return string
      */
     static public function run($command)
