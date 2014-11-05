@@ -1,0 +1,4 @@
+app:
+  jira:
+    username: u.sername
+    url: http://jira.example.com
