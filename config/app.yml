@@ -190,7 +190,7 @@ app:
                 'project = %project%
                 AND fixVersion not in (EMPTY)
                 AND fixVersion in releasedVersions()
-                %default_quoted%'
+                AND %default_quoted%'
               )
               AND fixVersion IS EMPTY
               AND status IN (%status_open%, %status_resolved%)
