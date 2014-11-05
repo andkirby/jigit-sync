@@ -301,7 +301,17 @@ class DefaultHelper
      */
     protected function _queryJql($type, $max = 20, $offset = 0, $fields = '')
     {
-        $fields = $fields ?: '*navigable';
+        $fields = $fields ?: $this->_getDefaultApiIssueFields();
         return $this->getApi()->search($this->_jql[$type]['jql'], $offset, $max, $fields);
+    }
+
+    /**
+     * Get default API issue fields
+     *
+     * @return string
+     */
+    protected function _getDefaultApiIssueFields()
+    {
+        return Config\Jira::getApiIssueFields();
     }
 }

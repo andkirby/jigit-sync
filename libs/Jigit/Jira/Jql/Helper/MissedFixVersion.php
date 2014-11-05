@@ -15,6 +15,11 @@ use Jigit\Output;
 class MissedFixVersion extends DefaultHelper
 {
     /**
+     * Default issues max count for JIRA API
+     */
+    const ISSUES_COUNT = 300;
+
+    /**
      * Issues which not in code
      *
      * @var Issue[][]
@@ -63,7 +68,7 @@ class MissedFixVersion extends DefaultHelper
      */
     public function process($type)
     {
-        $result = $this->_queryJql($type, 300/*, 0, 'issuekey,ixVersion,affectedVersion'*/);
+        $result = $this->_queryJql($type, self::ISSUES_COUNT);
         $issues = $this->_getIssues($result);
 
         $issueKeys = array_keys($issues);

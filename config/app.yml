@@ -55,8 +55,22 @@ app:
       master: master
 
   jira:
-    #JQLs list grouped by action
+    issue:
+      use_fields_list: 1
+      fields:
+      #Following queries will be used to make query
+        - summary
+        - assignee
+        - reporter
+        - versions            #affectedVersion
+        - fixVersions         #fixVersion
+        - changelog           #Change Log list
+        - issuetype           #Issue Type
+        - labels              #Labels
+        - status              #Issue Status
+        - customfield_10600   #Sprint IDs
     jql:
+    #JQLs list grouped by action
       action:
         #General report action to identify "problem" issues
         report:

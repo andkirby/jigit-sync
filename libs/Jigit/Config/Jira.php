@@ -7,10 +7,9 @@
  */
 
 namespace Jigit\Config;
-use \Jigit\Config as Config;
+use Jigit\Config as Config;
 use Jigit\Exception;
-use \Jigit\Jira\Password as Password;
-use Jigit\UserException;
+use Jigit\Jira\Password as Password;
 
 /**
  * Class User
@@ -86,5 +85,19 @@ class Jira extends Config
     protected static function _getConfigDir()
     {
         return self::getInstance()->getData('app/config_files/base_dir');
+    }
+
+    /**
+     * Get request API issue fields list
+     *
+     * @return string
+     * @throws Exception
+     */
+    public static function getApiIssueFields()
+    {
+        if (self::getInstance()->getData('app/jira/issue/use_fields_list')) {
+            return self::getInstance()->getDataString('app/jira/issue/fields', ',');
+        }
+        return '*navigable';
     }
 }
