@@ -100,4 +100,15 @@ class Jira extends Config
         }
         return '*navigable';
     }
+
+    /**
+     * Get request API issue fields list
+     *
+     * @return bool
+     * @throws Exception
+     */
+    public static function getIssueViewSimple()
+    {
+        return self::getInstance()->getData('app/jira/issue/simple_view');
+    }
 }

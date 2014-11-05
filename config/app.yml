@@ -22,7 +22,9 @@ app:
       filter: app/jira/jql/filter_jql
       f: app/jira/jql/filter_jql #alias
       bad-commit: app/vcs/bad_commit_check
-      c: app/vcs/bad_commit_check
+      c: app/vcs/bad_commit_check #alias
+      simple-view: app/jira/issue/simple-view
+      s: app/jira/issue/simple-view #alias
 
   #Config for branches and versions in VCS
   vcs:
@@ -56,6 +58,7 @@ app:
 
   jira:
     issue:
+      simple_view: 0  #if TRUE it will present simple issue output block
       use_fields_list: 1
       fields:
       #Following queries will be used to make query

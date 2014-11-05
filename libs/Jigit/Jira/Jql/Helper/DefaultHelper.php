@@ -255,13 +255,15 @@ class DefaultHelper
         $affectedVersions  = implode(', ', $issueHelper->getIssueAffectsVersions($issue));
         $fixVersionsString = implode(', ', $issueHelper->getIssueFixVersions($issue));
         $strIssue          = array();
-        $strIssue[]        = "Key:               {$issue->getKey()}: {$issue->getSummary()}";
-        $strIssue[]        = "Type:              {$type}";
-        $strIssue[]        = "AffectedVersion/s: {$affectedVersions}";
-        $strIssue[]        = "FixVersion/s:      {$fixVersionsString}";
-        $strIssue[]        = "Status:            {$status}";
-        $strIssue[]        = "Sprint:            {$sprint}";
-        $strIssue[]        = "Author/s:          {$authors}";
+        $strIssue[]        = "{$issue->getKey()}: {$issue->getSummary()}";
+        if (!Config\Jira::isIssueViewSimple()) {
+            $strIssue[]        = "Type:              {$type}";
+            $strIssue[]        = "AffectedVersion/s: {$affectedVersions}";
+            $strIssue[]        = "FixVersion/s:      {$fixVersionsString}";
+            $strIssue[]        = "Status:            {$status}";
+            $strIssue[]        = "Sprint:            {$sprint}";
+            $strIssue[]        = "Author/s:          {$authors}";
+        }
         return $strIssue;
     }
 

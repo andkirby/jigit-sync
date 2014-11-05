@@ -18,13 +18,21 @@
     f, filter             - JQL types white list.
                             Format: type1,type2,[...],typeN
     c, bad-commit         - Status of checking bad commits
+    s, simple-view        - Show simple issue info block in report
+                            0     - Show Full available info
+                            1     - Show only key and summary
+                            line  - Show in one line for report "push-tasks"
+                                    in format: "IssueKey: ver1, ver2"
 
   Examples:
     Check issues w/o FixVersion:
+
       php jira.php push-tasks p=prj
 
     Add required FixVersion into issues: (not implemented yet)
+
       php jira.php push-tasks p=prj update
 
     Add report of issues in the given FixVersion:
+
       php jira.php report p=prj ver=1.0.43 low=master top=hotfix/1.0.43
