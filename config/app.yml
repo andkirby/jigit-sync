@@ -194,7 +194,7 @@ app:
               )
               AND fixVersion IS EMPTY
               AND status IN (%status_open%, %status_resolved%)
-              %non_dev_issue_types%
+              AND type IN (%non_dev_issue_types%)
 
       #JQL aliases which might be used in JQL.
       #To use any alias just put it into JQL and wrap with %.
