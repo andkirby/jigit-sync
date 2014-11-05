@@ -256,7 +256,7 @@ class DefaultHelper
         $fixVersionsString = implode(', ', $issueHelper->getIssueFixVersions($issue));
         $strIssue          = array();
         $strIssue[]        = "{$issue->getKey()}: {$issue->getSummary()}";
-        if (!Config\Jira::isIssueViewSimple()) {
+        if (!Config\Jira::getIssueViewSimple()) {
             $strIssue[]        = "Type:              {$type}";
             $strIssue[]        = "AffectedVersion/s: {$affectedVersions}";
             $strIssue[]        = "FixVersion/s:      {$fixVersionsString}";
