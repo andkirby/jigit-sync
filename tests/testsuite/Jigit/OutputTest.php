@@ -11,7 +11,7 @@ class OutputTest extends \PHPUnit_Framework_TestCase
     /**
      * Test decorated output
      */
-    public function testDecoratedOutput()
+    public function testDecoratedOutputOneLine()
     {
         $test = new Output();
         $test->enableDecorator();
@@ -21,6 +21,27 @@ class OutputTest extends \PHPUnit_Framework_TestCase
         $expected = <<<EXP
 ================================================================================
 =-------------------------------- Some content --------------------------------=
+================================================================================
+
+EXP;
+        //@finishSkipCommitHooks
+        $test->setOutputDelimiter("\n");
+        $this->assertEquals($expected, $test->getOutputString());
+    }
+    /**
+     * Test decorated output
+     */
+    public function testDecoratedOutputLongLine()
+    {
+        $test = new Output();
+        $test->enableDecorator();
+        $test->add('Some content long text long text long text long text long text long text long text long text');
+        $test->disableDecorator();
+        //@startSkipCommitHooks
+        $expected = <<<EXP
+================================================================================
+=-- Some content long text long text long text long text long text long text --=
+=---------------------------- long text long text -----------------------------=
 ================================================================================
 
 EXP;
