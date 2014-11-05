@@ -78,8 +78,7 @@ class Output
             $contents = explode($delimiter, $content);
         }
         foreach ($contents as $content) {
-            $content = $this->_decorateContent($content);
-            $this->_output[] = (string) $content;
+            $this->_addContent($content);
         }
         return $this;
     }
@@ -156,20 +155,20 @@ class Output
      * @param string $content
      * @return string
      */
-    protected function _decorateContent($content)
+    protected function _addContent($content)
     {
         $shift  = $this->_decoratorOn ? 4 : 0;
         $length = mb_strlen($content) + $shift;
         if ($length > $this->_decoratorWidth) {
-            $content = wordwrap($content, $this->_decoratorWidth - $shift);
-            $output  = '';
-            foreach (explode(PHP_EOL, $content) as $line) {
-                $output .= $this->_decorateRow($line);
+            $width   = $this->_decoratorWidth - $shift;
+            $content = $this->_wordWrap($content, $width);
+            foreach (explode($this->_outputDelimiter, $content) as $line) {
+                $this->_output[] = $this->_decorateRow($line);
             }
         } else {
-            $output = $this->_decorateRow($content);
+            $this->_output[] = $this->_decorateRow($content);
         }
-        return $output;
+        return $this;
     }
 
     /**
@@ -230,5 +229,19 @@ class Output
     {
         $this->_outputDelimiter = $outputDelimiter;
         return $this;
+    }
+
+    /**
+     * Wrap string by words
+     *
+     * @param string $content
+     * @param string $width
+     * @return string
+     */
+    protected function _wordWrap($content, $width)
+    {
+        $content = wordwrap($content, $width);
+        $content = str_replace("\r\n", $this->_outputDelimiter, $content);
+        return str_replace("\n", $this->_outputDelimiter, $content);
     }
 }

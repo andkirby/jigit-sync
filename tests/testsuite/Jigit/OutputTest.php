@@ -28,6 +28,7 @@ EXP;
         $test->setOutputDelimiter("\n");
         $this->assertEquals($expected, $test->getOutputString());
     }
+
     /**
      * Test decorated output
      */
