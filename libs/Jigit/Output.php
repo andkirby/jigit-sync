@@ -209,4 +209,26 @@ class Output
     {
         return $this->getOutputString();
     }
+
+    /**
+     * Get output row delimiter
+     *
+     * @return string
+     */
+    public function getOutputDelimiter()
+    {
+        return $this->_outputDelimiter;
+    }
+
+    /**
+     * Set output row delimiter
+     *
+     * @param string $outputDelimiter
+     * @return $this
+     */
+    public function setOutputDelimiter($outputDelimiter)
+    {
+        $this->_outputDelimiter = $outputDelimiter;
+        return $this;
+    }
 }
