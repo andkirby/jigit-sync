@@ -79,7 +79,7 @@ app:
         report:
           relasedIssuesMissedFixVersion:
             # Check released fix/affects version
-            in_progress: 0
+            in_progress: -1
             message: Issues have missed fixVersion (for resolved) or affectedVersion (for reopened)
             jql: |
               project = HAS
@@ -95,24 +95,25 @@ app:
                   (affectedVersion != %version% OR affectedVersion is EMPTY)
                 )
           inBranchWithoutFixVersion:
+            # Check issues which have to have fixVersion
+            # TODO implement checking that completed issue has all completed sub-issues
             helper: withoutFixVersion
-            in_progress: -1
+            in_progress: 1
             message: Has no fix version.
             jql: |
               project = %project%
-                  AND (
-                      (fixVersion != %version% OR fixVersion is EMPTY)
-                      AND status NOT IN (%status_open%)
-                  )
-                  AND (
-                      (key IN (%vcs_keys%) AND type NOT IN (%subtask_types%))
-                      OR
-                      issueFunction IN parentsOf("project = %project% AND key IN (%vcs_keys%)")
-                  )
+                AND (fixVersion != %version% OR fixVersion is EMPTY)
+                AND status NOT IN (%status_open%)
+                AND (
+                  key IN (%vcs_keys%) AND type NOT IN (%subtask_types%)
+                  OR
+                  issueFunction IN parentsOf("project = %project% AND key IN (%vcs_keys%)")
+                )
           notAffectsCodeWithFixVersion:
+            # Get issues which doesn't affects code
             helper: notAffectsCode
             in_progress: -1
-            message: Issues which did not affect the code.
+            message: Issues which doesn't affect the code.
             jql: |
               project = %project%
               AND (fixVersion = %version% OR affectedVersion = %version%)
@@ -121,53 +122,43 @@ app:
               AND (labels NOT IN (%not_affects_code_labels%) OR labels IS EMPTY)
               AND type NOT IN (%parent_issue_types%)
           parentIssueHasCommit:
+            #Check out issues which has commits and subtasks
             in_progress: -1
             message: Parent issue has commit.
             jql: |
               project = %project%
                   AND key IN (%vcs_keys%)
-                  AND type IN (issueFunction IN hasSubtasks()
+                  AND issueFunction IN hasSubtasks()
           openWithFixVersion:
             in_progress: 1
             message: Open issues for "in progress" fix version.
             jql: |
               project = %project%
-                AND (
+              AND (
                   status in (%status_open%)
                   AND fixVersion = %version%
                 OR
-                  AND status in (%status_open%)
+                  status in (%status_open%)
                   AND issueFunction IN subtasksOf(
                     "project = %project% AND status NOT IN (%status_open%) AND fixVersion = %version%"
                   )
                 )
-#          openSubIssueInResolvedIssue:
-#            in_progress: 1
-#            message: Open TOP issues for "in progress" fix version.
-#            jql: |
-#              project = %project%
-#              AND status in (%status_open%)
-#              AND issueFunction IN parentsOf(
-#                  "project = %project% AND status NOT IN (%status_open%) AND key IN (%vcs_keys%)"
-#              )
-#          inBranchWithoutAffectedVersion:
-#            in_progress: 0
-#            message: Parent issue has commit.
-#            jql: |
-#              project = %project%
-#              AND (
-#                  (affectedVersion != %version% OR affectedVersion is EMPTY)
-#                  AND status IN (%status_open%)
-#              )
-#              AND type NOT IN ('Sub-Task Task', 'Sub-Task Question')
-#              AND key IN (%vcs_keys%)
-          notInSprint:
+          openSubIssueInResolvedIssue:
             in_progress: 1
-            message: Parent issue has commit.
+            message: Open TOP issues for "in progress" fix version.
             jql: |
               project = %project%
-              (AND Sprint NOT IN (%active_sprints%) OR Sprint IS EMPTY)
+              AND status in (%status_open%)
+              AND issueFunction IN parentsOf(
+                  "project = %project% AND status NOT IN (%status_open%) AND key IN (%vcs_keys%)"
+              )
+          notInSprint:
+            in_progress: 1
+            message: Issues not in sprint.
+            jql: |
+              project = %project%
               AND key IN (%vcs_keys%)
+              AND (Sprint NOT IN (%active_sprints%) OR Sprint IS EMPTY)
         push-tasks: #"push-tasks" action to check and update fixVersion
           issuesHaveNotFixVersion:
             helper: missedFixVersion
