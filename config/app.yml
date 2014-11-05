@@ -94,21 +94,23 @@ app:
                   AND
                   (affectedVersion != %version% OR affectedVersion is EMPTY)
                 )
-          inBranchWithoutFixVersion:
-            # Check issues which have to have fixVersion
-            # TODO implement checking that completed issue has all completed sub-issues
-            helper: withoutFixVersion
-            in_progress: 1
-            message: Has no fix version.
-            jql: |
-              project = %project%
-                AND (fixVersion != %version% OR fixVersion is EMPTY)
-                AND status NOT IN (%status_open%)
-                AND (
-                  key IN (%vcs_keys%) AND type NOT IN (%subtask_types%)
-                  OR
-                  issueFunction IN parentsOf("project = %project% AND key IN (%vcs_keys%)")
-                )
+
+            #Seem relasedIssuesMissedFixVersion covers this JQL
+#          inBranchWithoutFixVersion:
+#            # Check issues which have to have fixVersion
+#            # TODO implement checking that completed issue has all completed sub-issues
+#            helper: withoutFixVersion
+#            in_progress: 1
+#            message: Has no fix version.
+#            jql: |
+#              project = %project%
+#                AND (fixVersion != %version% OR fixVersion is EMPTY)
+#                AND status NOT IN (%status_open%)
+#                AND (
+#                  key IN (%vcs_keys%) AND type NOT IN (%subtask_types%)
+#                  OR
+#                  issueFunction IN parentsOf("project = %project% AND key IN (%vcs_keys%)")
+#                )
           notAffectsCodeWithFixVersion:
             # Get issues which doesn't affects code
             helper: notAffectsCode
@@ -120,7 +122,13 @@ app:
               AND key NOT IN (%vcs_keys%)
               AND resolution NOT IN (%not_affects_code_resolutions%)
               AND (labels NOT IN (%not_affects_code_labels%) OR labels IS EMPTY)
-              AND type NOT IN (%parent_issue_types%)
+              AND (
+                issueFunction NOT IN hasSubtasks()
+                OR
+                issueFunction IN subtasksOf(
+                  "project = %project% AND (fixVersion = %version% OR affectedVersion = %version%)"
+                )
+              )
           parentIssueHasCommit:
             #Check out issues which has commits and subtasks
             in_progress: -1
