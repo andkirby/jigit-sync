@@ -301,6 +301,6 @@ class DefaultHelper
     protected function _queryJql($type, $max = 20, $offset = 0, $fields = '')
     {
         $fields = $fields ?: '*navigable';
-        return $this->getApi()->search($this->_jql[$type]['jql'], $max, $offset, $fields);
+        return $this->getApi()->search($this->_jql[$type]['jql'], $offset, $max, $fields);
     }
 }
