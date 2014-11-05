@@ -8,12 +8,11 @@ $includePaths = array(
     get_include_path(),
     realpath(__DIR__ . '/..') . '/framework',
     realpath(__DIR__ . '/..') . '/testsuite',
-    realpath(__DIR__ . '/../..') . '/lib',
+    realpath(__DIR__ . '/../..') . '/libs',
     realpath(__DIR__ . '/../../..') . '/jira-api-restclient',
 );
 define('PROJECT_ROOT', realpath(__DIR__ . '/../..'));
 set_include_path(implode(PATH_SEPARATOR, $includePaths));
-
 
 require_once 'Autoloader.php';
 \Autoloader::register();
