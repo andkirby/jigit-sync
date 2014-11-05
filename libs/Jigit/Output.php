@@ -199,4 +199,14 @@ class Output
         }
         return $output;
     }
+
+    /**
+     * Get output string
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->getOutputString();
+    }
 }
