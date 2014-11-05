@@ -130,8 +130,12 @@ class MissedFixVersion extends DefaultHelper
         $strIssue = parent::_getIssueContentBlock($jqlType, $issue);
 
         $versions = $this->_missedIssueVersions[$jqlType][$issue->getKey()];
-        $versions = implode(', ', $versions);
-        $strIssue[] = "REQUIRED:          {$versions}";
+        $requiredFixVersion = array_pop($versions);
+        $strIssue[] = "REQUIRED FixVersion:          {$requiredFixVersion}";
+        if ($versions) {
+            $versions = implode(', ', $versions);
+            $strIssue[] = "REQUIRED AffectsVersion/s:{$versions}";
+        }
         return $strIssue;
     }
 
