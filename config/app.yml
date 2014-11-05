@@ -23,8 +23,8 @@ app:
       f: app/jira/jql/filter_jql #alias
       bad-commit: app/vcs/bad_commit_check
       c: app/vcs/bad_commit_check #alias
-      simple-view: app/jira/issue/simple-view
-      s: app/jira/issue/simple-view #alias
+      simple-view: app/jira/issue/simple_view
+      s: app/jira/issue/simple_view #alias
 
   #Config for branches and versions in VCS
   vcs:

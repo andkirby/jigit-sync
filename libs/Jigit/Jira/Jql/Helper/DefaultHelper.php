@@ -242,7 +242,7 @@ class DefaultHelper
      */
     protected function _getIssueContentBlock($jqlType, $issue)
     {
-        if (!$this->_isLineSimpleView()) {
+        if ($this->_isLineSimpleView()) {
             $strIssue = "{$issue->getKey()}";
         } elseif (Config\Jira::getIssueViewSimple()) {
             $strIssue = "{$issue->getKey()}: {$issue->getSummary()}";
