@@ -215,6 +215,7 @@ class DefaultHelper
             $output->add('Keys: ' . implode(', ', array_keys($this->_result[$jqlType])));
             foreach ($this->_result[$jqlType] as $issue) {
                 $output->add($this->_getIssueContentBlock($jqlType, $issue));
+                $output->addDelimiter();
             }
         }
         $this->_postOutput($output, $jqlType);
