@@ -153,7 +153,7 @@ class Jql
      */
     protected function _getDraftJqlString($item)
     {
-        return $item['jql'] . ' %default%';
+        return "({$item['jql']}) AND (%default%)";
     }
 
     /**
