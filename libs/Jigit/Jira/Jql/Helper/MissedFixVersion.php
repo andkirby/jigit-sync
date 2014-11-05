@@ -85,7 +85,6 @@ class MissedFixVersion extends DefaultHelper
                 unset($this->_issuesNotInCode[$type][$id]);
             }
         }
-
         if ($issueKeyIdsInTags) {
             //check exists fixVersion
             foreach ($issueKeyIdsInTags as $id => $versions) {
@@ -212,15 +211,14 @@ class MissedFixVersion extends DefaultHelper
         $tags              = $this->_getVcsTags();
         $prevTag           = array_shift($tags);
         $issueKeyIdsString = implode('|', $issueKeys);
-        $project           = Config\Project::getJiraProject();
         foreach ($tags as $tag) {
             Config::addDebug("Find issues between: $prevTag..$tag");
-            $result = $this->getVcs()->runInProjectDir(
-                "log $prevTag..$tag --no-merges --reverse --oneline | grep -E \"($issueKeyIdsString)\""
+            $log = $this->getVcs()->getLog(
+                $prevTag, $tag, $this->getVcs()->getLogFormat(), "--reverse -E --grep=\"($issueKeyIdsString)\""
             );
-            if ($result) {
-                preg_match_all('/\s(' . $project . '-\d+)/', $result, $keys);
-                $vcsIssues[$tag] = array_unique($keys[1]);
+            $issues = $this->getVcs()->aggregateCommitsByLog($log);
+            if ($issues) {
+                $vcsIssues[$tag] = array_keys($issues);
                 Config::addDebug(
                     "Result GIT searching for tag '$tag': "
                     . PHP_EOL . implode(', ', $vcsIssues[$tag])

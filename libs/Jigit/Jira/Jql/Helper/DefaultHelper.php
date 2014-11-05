@@ -247,9 +247,8 @@ class DefaultHelper
         } elseif (Config\Jira::getIssueViewSimple()) {
             $strIssue = "{$issue->getKey()}: {$issue->getSummary()}";
         } else {
-            $authors = $this->_getIssueHelper()->getAuthorsByJqlType(
-                $this->_jql[$jqlType], $issue,
-                $this->getApi(), $this->getVcs()
+            $authors = $this->_getIssueHelper()->getIssueAuthors(
+                $issue, $this->getVcs()->getCommits()
             );
             $authors = implode(', ', $authors);
             $issueHelper       = $this->_getIssueHelper();
@@ -261,6 +260,7 @@ class DefaultHelper
 
 //@startSkipCommitHooks
             $strIssue          = <<<STR
+{$issue->getKey()}: {$issue->getSummary()}
 Type:              {$type}
 AffectedVersion/s: {$affectedVersions}
 FixVersion/s:      {$fixVersionsString}
@@ -347,6 +347,6 @@ STR;
      */
     protected function _isLineSimpleView()
     {
-        return 'line' == Config\Jira::getIssueViewSimple();
+        return 'line' === Config\Jira::getIssueViewSimple();
     }
 }

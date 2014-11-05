@@ -10,6 +10,7 @@ namespace Jigit;
 use Jigit\Config;
 use Jigit\Dispatcher\InterfaceDispatcher;
 use Jigit\Vcs\InterfaceVcs;
+use Lib\Exception;
 
 /**
  * GIT adapter
@@ -82,22 +83,8 @@ class Git implements InterfaceVcs
              */
             $branchLow = Config\Project::getGitBranchLow();
             $branchTop = Config\Project::getGitBranchTop();
-            $gitRoot = Config\Project::getProjectRoot();
-            $project = Config\Project::getJiraProject();
 
-            $this->isBranchValid($gitRoot, $branchLow);
-            $this->isBranchValid($gitRoot, $branchTop);
-
-            $format = $this->_getLogFormat();
-            $gitRoot = Config\Project::getProjectRoot();
-
-            $log = $this->_getLog($gitRoot, $branchLow, $branchTop, $format);
-
-            Config::addDebug('LOG: ' . $log);
-            if (!$log) {
-                throw new UserException('No VCS log found.');
-            }
-            $this->_commits = $this->_getGroupedCommits($log, $project);
+            $this->aggregateCommits($branchLow, $branchTop);
         }
         return $this->_commits;
     }
@@ -162,45 +149,52 @@ class Git implements InterfaceVcs
     static public function run($command)
     {
         Config::addDebug('GIT command: ' . PHP_EOL . $command);
-        return `$command`;
+        //@startSkipCommitHooks
+        $result = `$command 2>&1`; //added trail to capture all output
+        //@finishSkipCommitHooks
+        if (false !== strpos($result, 'fatal:')
+            || false !== strpos($result, 'error:')
+        ) {
+            throw new Exception('GIT: ' . $result);
+        }
+        return $result;
     }
 
     /**
      * Get commits grouped by jira keys.
      *
-     * @param string $commit
+     * @param string $log
      * @param string $project
      * @return array
      * @throws UserException
      */
-    protected function _getGroupedCommits($commit, $project)
+    public function aggregateCommitsByLog($log, $project = null)
     {
-        $keys = array();
-        $commits = explode($this->_getCommitDelimiter(), $commit);
+        $result = array();
+        $this->_commits = $this->_commits ?: array();
+        $commits = explode($this->_getCommitDelimiter(), $log);
         foreach ($commits as $commit) {
             $info = $this->_getCommitInfo($commit);
-            $issueKey = $this->_getIssueKey($project, $info['message']);
-            if (!$issueKey) {
-                if ($this->isCheckWrongCommits()) {
-                    throw new UserException("Issue key is not set for hash '{$info['hash']}' of {$info['author']}.");
-                }
-                continue;
+            $issueKey = $this->_getIssueKey($info['message'], $project);
+            if ($issueKey) {
+                $this->_commits[$issueKey]['hash'][$info['author']][] = $info['hash'];
+                $result[$issueKey]['hash'][$info['author']][] = $info['hash'];
             }
-            $keys[$issueKey]['hash'][$info['author']][] = $info['hash'];
         }
-        return $keys;
+        return $result;
     }
 
     /**
      * Get issue key
      *
-     * @param string $project Project key
      * @param string $message Commit message
+     * @param string $project Project key
      * @throws Exception
      * @return mixed
      */
-    protected function _getIssueKey($project, $message)
+    protected function _getIssueKey($message, $project = null)
     {
+        $project = $project ?: Config\Project::getJiraProject();
         $matches = array();
         preg_match('/' . $project . '-[0-9]+/', $message, $matches);
         if (isset($matches[0])) {
@@ -252,13 +246,16 @@ class Git implements InterfaceVcs
     /**
      * Validate branches
      *
-     * @param string $gitRoot
      * @param string $branch
-     * @return bool
+     * @throws Exception
      * @throws UserException
+     * @return bool
      */
-    public function isBranchValid($gitRoot, $branch)
+    public function isBranchValid($branch)
     {
+        if (!$branch) {
+            throw new Exception('Empty branch name.');
+        }
         $branchFound = (bool)$this->runInProjectDir("branch -a --list $branch");
         if (!$branchFound) {
             $branchFound = (bool)$this->runInProjectDir("tag --list $branch");
@@ -274,7 +271,7 @@ class Git implements InterfaceVcs
      *
      * @return string
      */
-    protected function _getLogFormat()
+    public function getLogFormat()
     {
         $delimiter    = $this->_getCommitParamDelimiter();
         $logDelimiter = $this->_getCommitDelimiter();
@@ -284,17 +281,24 @@ class Git implements InterfaceVcs
     /**
      * Get log between branches
      *
-     * @param string $gitRoot
      * @param string $branchLow
      * @param string $branchTop
      * @param string $format
+     * @param string $extraParams
+     * @throws Exception
      * @return string
      */
-    protected function _getLog($gitRoot, $branchLow, $branchTop, $format)
+    public function getLog($branchLow, $branchTop, $format, $extraParams = '')
     {
+        $this->isBranchValid($branchLow);
+        $this->isBranchValid($branchTop);
+
+        if (!$branchLow || !$branchTop) {
+            throw new Exception('Branch cannot be empty.');
+        }
         //@startSkipCommitHooks
-        $log = $this->run(
-            "git --git-dir $gitRoot/.git/ log $branchLow..$branchTop --pretty=format:\"$format\" --no-merges"
+        $log = $this->runInProjectDir(
+            "log $branchLow..$branchTop --pretty=format:\"$format\" --no-merges $extraParams"
         );
         //@finishSkipCommitHooks
         return trim($log, $this->_getCommitDelimiter());
@@ -335,6 +339,30 @@ class Git implements InterfaceVcs
     public function setDispatcher(InterfaceDispatcher $dispatcher)
     {
         $this->_dispatcher = $dispatcher;
+        return $this;
+    }
+
+    /**
+     * Aggregate commits
+     *
+     * @param string      $branchLow
+     * @param string      $branchTop
+     * @param string|null $project
+     * @return $this
+     * @throws Exception
+     * @throws UserException
+     */
+    public function aggregateCommits($branchLow, $branchTop, $project = null)
+    {
+        $project = $project ?: Config\Project::getJiraProject();
+        $format  = $this->getLogFormat();
+        $log     = $this->getLog($branchLow, $branchTop, $format);
+
+        Config::addDebug('LOG: ' . $log);
+        if (!$log) {
+            throw new UserException('No VCS log found.');
+        }
+        $this->aggregateCommitsByLog($log, $project);
         return $this;
     }
 }

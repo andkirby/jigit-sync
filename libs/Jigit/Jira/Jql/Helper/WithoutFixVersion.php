@@ -29,9 +29,9 @@ class WithoutFixVersion extends DefaultHelper
     public function handleIssue($type, Issue $issue)
     {
         //check fix version right?
-        if ($this->_isIssueFixVersionProper($issue)) {
-            return $this;
-        }
+//        if ($this->_isIssueFixVersionProper($issue)) {
+//            return $this;
+//        }
         return parent::handleIssue($type, $issue);
     }
 

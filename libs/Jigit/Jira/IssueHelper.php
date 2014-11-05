@@ -97,6 +97,7 @@ class IssueHelper
     /**
      * Get authors by JQL type
      *
+     * @deprecated
      * @param array            $jqlItem
      * @param Issue       $issue
      * @param Api         $api
@@ -109,7 +110,7 @@ class IssueHelper
         if (Jql::TYPE_WITHOUT_FIX_VERSION == $jqlItem['type']
             || Jql::TYPE_OPEN_FOR_IN_PROGRESS_VERSION == $jqlItem['type']
         ) {
-            $authors = $this->getIssueAuthors($api, $issue, $vcs->getCommits());
+            return $this->getIssueAuthors($api, $issue, $vcs->getCommits());
         } elseif (Jql::TYPE_NOT_AFFECTS_CODE == $jqlItem['type']) {
             $authors = $this->getIssueAuthors($api, $issue, array());
         }
@@ -125,17 +126,16 @@ class IssueHelper
      * @param array      $gitKeys
      * @return array
      */
-    public function getIssueAuthors(Api $api, Issue $issue, $gitKeys)
+    public function getIssueAuthors(Issue $issue, $gitKeys)
     {
         $authors = $this->getIssueVcsAuthors($issue, $gitKeys);
         if (!$authors) {
-            $authors = $this->getIssueChangeLogAuthors($api, $issue);
+            $authors = $this->getIssueChangeLogAuthors($issue);
         }
         if (!$authors) {
-            $assignee = $this->getIssueAssignee($issue);
-            $authors  = $assignee . ' (assignee)';
+            $authors  = array($this->getIssueAssignee($issue) . ' (assignee)');
         }
-        return $authors;
+        return $authors ?: array();
     }
 
     /**
@@ -149,7 +149,7 @@ class IssueHelper
     {
         $authors = array();
         if ($gitKeys && isset($gitKeys[$issue->getKey()])) {
-            $authors = implode(', ', array_keys($gitKeys[$issue->getKey()]['hash']));
+            $authors = array_keys($gitKeys[$issue->getKey()]['hash']);
         }
         return $authors;
     }
@@ -161,22 +161,20 @@ class IssueHelper
      * @param Issue $issue
      * @return mixed
      */
-    public function getIssueChangeLogAuthors(Api $api, Issue $issue)
+    public function getIssueChangeLogAuthors(Issue $issue)
     {
         /**
          * Try to find author for non-code issue
          */
         $authors = array();
-        $issueResult              = $api->getIssue($issue->getKey(), 'changelog')->getResult();
-        $issueResult['changelog'] = array_reverse($issueResult['changelog'], true);
-        foreach ($issueResult['changelog'] as $changes) {
+        foreach ($this->getChangeLog($issue) as $changes) {
             if (!is_array($changes)) {
                 continue;
             }
             foreach ($changes as $key => $change) {
                 foreach ($change['items'] as $item) {
                     if ($item['field'] == $item['field'] && $item['toString'] == 'Resolved') {
-                        $authors = $change['author']['displayName'];
+                        $authors[] = $change['author']['displayName'];
                         break 3;
                     }
                 }
@@ -195,5 +193,22 @@ class IssueHelper
     {
         $assignee = $issue->getAssignee();
         return $assignee['displayName'];
+    }
+
+    /**
+     * Get issue change log
+     *
+     * @param Issue $issue
+     * @param bool  $reverse
+     * @return array
+     */
+    public function getChangeLog(Issue $issue, $reverse = true)
+    {
+        $info      = $issue->getExpandedInformation();
+        $changeLog = isset($info['changelog']) ? $info['changelog'] : array();
+        if ($reverse) {
+            $changeLog = array_reverse($changeLog, true);
+        }
+        return $changeLog;
     }
 }

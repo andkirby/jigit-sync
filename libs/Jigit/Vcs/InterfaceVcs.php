@@ -7,8 +7,8 @@
  */
 
 namespace Jigit\Vcs;
-use \Jigit\Dispatcher\InterfaceDispatcher;
-use \Jigit\UserException;
+use Jigit\Dispatcher\InterfaceDispatcher;
+use Jigit\UserException;
 
 /**
  * Interface VCS
@@ -48,7 +48,7 @@ interface InterfaceVcs
      * @return bool
      * @throws UserException
      */
-    public function isBranchValid($gitRoot, $branch);
+    public function isBranchValid($branch);
 
     /**
      * Get VCS helper
