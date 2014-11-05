@@ -247,6 +247,7 @@ class DefaultHelper
             $this->_jql[$jqlType], $issue,
             $this->getApi(), $this->getVcs()
         );
+        $authors = implode(', ', $authors);
         $issueHelper       = $this->_getIssueHelper();
         $sprint            = $issueHelper->getIssueSprint($issue);
         $status            = $issueHelper->getIssueStatus($issue);
