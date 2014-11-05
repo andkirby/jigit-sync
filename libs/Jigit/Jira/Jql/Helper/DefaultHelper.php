@@ -214,8 +214,7 @@ class DefaultHelper
             $this->_addOutputHeader($output, $jqlType);
             $output->add('Keys: ' . implode(', ', array_keys($this->_result[$jqlType])));
             foreach ($this->_result[$jqlType] as $issue) {
-                $output->add($this->_getIssueContentBlock($jqlType, $issue));
-                $output->addDelimiter();
+                $this->_addIssueIntoOutput($output, $jqlType, $issue);
             }
         }
         $this->_postOutput($output, $jqlType);
@@ -243,26 +242,33 @@ class DefaultHelper
      */
     protected function _getIssueContentBlock($jqlType, $issue)
     {
-        $authors = $this->_getIssueHelper()->getAuthorsByJqlType(
-            $this->_jql[$jqlType], $issue,
-            $this->getApi(), $this->getVcs()
-        );
-        $authors = implode(', ', $authors);
-        $issueHelper       = $this->_getIssueHelper();
-        $sprint            = $issueHelper->getIssueSprint($issue);
-        $status            = $issueHelper->getIssueStatus($issue);
-        $type              = $issueHelper->getIssueType($issue);
-        $affectedVersions  = implode(', ', $issueHelper->getIssueAffectsVersions($issue));
-        $fixVersionsString = implode(', ', $issueHelper->getIssueFixVersions($issue));
-        $strIssue          = array();
-        $strIssue[]        = "{$issue->getKey()}: {$issue->getSummary()}";
-        if (!Config\Jira::getIssueViewSimple()) {
-            $strIssue[]        = "Type:              {$type}";
-            $strIssue[]        = "AffectedVersion/s: {$affectedVersions}";
-            $strIssue[]        = "FixVersion/s:      {$fixVersionsString}";
-            $strIssue[]        = "Status:            {$status}";
-            $strIssue[]        = "Sprint:            {$sprint}";
-            $strIssue[]        = "Author/s:          {$authors}";
+        if (!$this->_isLineSimpleView()) {
+            $strIssue = "{$issue->getKey()}";
+        } elseif (Config\Jira::getIssueViewSimple()) {
+            $strIssue = "{$issue->getKey()}: {$issue->getSummary()}";
+        } else {
+            $authors = $this->_getIssueHelper()->getAuthorsByJqlType(
+                $this->_jql[$jqlType], $issue,
+                $this->getApi(), $this->getVcs()
+            );
+            $authors = implode(', ', $authors);
+            $issueHelper       = $this->_getIssueHelper();
+            $sprint            = $issueHelper->getIssueSprint($issue);
+            $status            = $issueHelper->getIssueStatus($issue);
+            $type              = $issueHelper->getIssueType($issue);
+            $affectedVersions  = implode(', ', $issueHelper->getIssueAffectsVersions($issue));
+            $fixVersionsString = implode(', ', $issueHelper->getIssueFixVersions($issue));
+
+//@startSkipCommitHooks
+            $strIssue          = <<<STR
+Type:              {$type}
+AffectedVersion/s: {$affectedVersions}
+FixVersion/s:      {$fixVersionsString}
+Status:            {$status}
+Sprint:            {$sprint}
+Author/s:          {$authors}
+STR;
+//@finishSkipCommitHooks
         }
         return $strIssue;
     }
@@ -315,5 +321,32 @@ class DefaultHelper
     protected function _getDefaultApiIssueFields()
     {
         return Config\Jira::getApiIssueFields();
+    }
+
+    /**
+     * Add issue into output
+     *
+     * @param Output $output
+     * @param string $jqlType
+     * @param Issue  $issue
+     * @return $this
+     */
+    protected function _addIssueIntoOutput(Output $output, $jqlType, $issue)
+    {
+        if (!$this->_isLineSimpleView()) {
+            $output->addDelimiter();
+        }
+        $output->add($this->_getIssueContentBlock($jqlType, $issue));
+        return $this;
+    }
+
+    /**
+     * Check line simple view
+     *
+     * @return bool
+     */
+    protected function _isLineSimpleView()
+    {
+        return 'line' == Config\Jira::getIssueViewSimple();
     }
 }

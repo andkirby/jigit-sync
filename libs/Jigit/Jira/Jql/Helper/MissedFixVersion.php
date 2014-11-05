@@ -132,14 +132,19 @@ class MissedFixVersion extends DefaultHelper
      */
     protected function _getIssueContentBlock($jqlType, $issue)
     {
-        $strIssue = parent::_getIssueContentBlock($jqlType, $issue);
-
         $versions = $this->_missedIssueVersions[$jqlType][$issue->getKey()];
+        if ($this->_isLineSimpleView()) {
+            //return "line" issue view
+            $versions = implode(', ', $versions);
+            return parent::_getIssueContentBlock($jqlType, $issue) . ": $versions";
+        }
+
+        $strIssue = parent::_getIssueContentBlock($jqlType, $issue);
         $requiredFixVersion = array_pop($versions);
-        $strIssue[] = "REQUIRED FixVersion:          {$requiredFixVersion}";
+        $strIssue .= PHP_EOL . "REQUIRED FixVersion:          {$requiredFixVersion}";
         if ($versions) {
             $versions = implode(', ', $versions);
-            $strIssue[] = "REQUIRED AffectsVersion/s:{$versions}";
+            $strIssue .= PHP_EOL . "REQUIRED AffectsVersion/s:{$versions}";
         }
         return $strIssue;
     }
