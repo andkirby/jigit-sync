@@ -12,9 +12,9 @@ app:
     params_map:
       low: app/git/branch_low
       top: app/git/branch_top
-      ver: app/jira/jql/alias/target_fix_version
-      in-progress: app/jira/jql/alias/target_fix_version_in_progress
-      i: app/jira/jql/alias/target_fix_version_in_progress #alias
+      ver: app/jira/jql/alias/version
+      in-progress: app/jira/jql/alias/version_in_progress
+      i: app/jira/jql/alias/version_in_progress #alias
       force-remote: app/vcs/remote/force_using
       r: app/vcs/remote/force_using #alias
       debug: app/debug_mode
@@ -78,8 +78,9 @@ app:
         #General report action to identify "problem" issues
         report:
           relasedIssuesMissedFixVersion:
+            # Check released fix/affects version
             in_progress: 0
-            message: Issues have missed fixVersion or affectedVersion (for reopened issues)
+            message: Issues have missed fixVersion (for resolved) or affectedVersion (for reopened)
             jql: |
               project = HAS
                 AND (
@@ -89,9 +90,9 @@ app:
                     "project = %project% AND key IN (%vcs_keys%)"
                   )
                 ) AND (
-                  (fixVersion is Empty OR fixVersion != %target_fix_version%)
+                  (fixVersion is EMPTY OR fixVersion != %version%)
                   AND
-                  (affectedVersion != %target_fix_version% OR affectedVersion is EMPTY)
+                  (affectedVersion != %version% OR affectedVersion is EMPTY)
                 )
           inBranchWithoutFixVersion:
             helper: withoutFixVersion
@@ -100,13 +101,13 @@ app:
             jql: |
               project = %project%
                   AND (
-                      (fixVersion != %target_fix_version% OR fixVersion is EMPTY)
-                      AND status NOT IN (Open, Reopened, 'In Progress')
+                      (fixVersion != %version% OR fixVersion is EMPTY)
+                      AND status NOT IN (%status_open%)
                   )
                   AND (
-                      (key IN (%vcs_keys%) AND type NOT IN ('Sub-Task Task'))
+                      (key IN (%vcs_keys%) AND type NOT IN (%subtask_types%))
                       OR
-                      (issueFunction IN parentsOf("project = %project% AND key IN (%vcs_keys%)"))
+                      issueFunction IN parentsOf("project = %project% AND key IN (%vcs_keys%)")
                   )
           notAffectsCodeWithFixVersion:
             helper: notAffectsCode
@@ -114,46 +115,52 @@ app:
             message: Issues which did not affect the code.
             jql: |
               project = %project%
-              AND fixVersion = %target_fix_version%
+              AND (fixVersion = %version% OR affectedVersion = %version%)
               AND key NOT IN (%vcs_keys%)
               AND resolution NOT IN (%not_affects_code_resolutions%)
               AND (labels NOT IN (%not_affects_code_labels%) OR labels IS EMPTY)
-              AND type NOT IN ('Change Request', Story, Epic)
+              AND type NOT IN (%parent_issue_types%)
           parentIssueHasCommit:
             in_progress: -1
             message: Parent issue has commit.
             jql: |
               project = %project%
-                  AND fixVersion = %target_fix_version%
                   AND key IN (%vcs_keys%)
-                  AND (type IN ('Change Request', Story, Epic) OR and issueFunction IN hasSubtasks())
+                  AND type IN (issueFunction IN hasSubtasks()
           openWithFixVersion:
             in_progress: 1
             message: Open issues for "in progress" fix version.
             jql: |
               project = %project%
-              AND status in (Open, Reopened, 'In Progress')
-              AND fixVersion = %target_fix_version%
-          openSubIssueInResolvedIssue:
-            in_progress: 1
-            message: Open TOP issues for "in progress" fix version.
-            jql: |
-              project = %project%
-              AND status in (Open, Reopened, 'In Progress')
-              AND issueFunction IN parentsOf(
-                  "project = %project% AND status NOT IN (Open, Reopened, 'In Progress') AND key IN (%vcs_keys%)"
-              )
-          inBranchWithoutAffectedVersion:
-            in_progress: 0
-            message: Parent issue has commit.
-            jql: |
-              project = %project%
-              AND (
-                  (affectedVersion != %target_fix_version% OR affectedVersion is EMPTY)
-                  AND status IN (Open, Reopened, 'In Progress')
-              )
-              AND type NOT IN ('Sub-Task Task', 'Sub-Task Question')
-              AND key IN (%vcs_keys%)
+                AND (
+                  status in (%status_open%)
+                  AND fixVersion = %version%
+                OR
+                  AND status in (%status_open%)
+                  AND issueFunction IN subtasksOf(
+                    "project = %project% AND status NOT IN (%status_open%) AND fixVersion = %version%"
+                  )
+                )
+#          openSubIssueInResolvedIssue:
+#            in_progress: 1
+#            message: Open TOP issues for "in progress" fix version.
+#            jql: |
+#              project = %project%
+#              AND status in (%status_open%)
+#              AND issueFunction IN parentsOf(
+#                  "project = %project% AND status NOT IN (%status_open%) AND key IN (%vcs_keys%)"
+#              )
+#          inBranchWithoutAffectedVersion:
+#            in_progress: 0
+#            message: Parent issue has commit.
+#            jql: |
+#              project = %project%
+#              AND (
+#                  (affectedVersion != %version% OR affectedVersion is EMPTY)
+#                  AND status IN (%status_open%)
+#              )
+#              AND type NOT IN ('Sub-Task Task', 'Sub-Task Question')
+#              AND key IN (%vcs_keys%)
           notInSprint:
             in_progress: 1
             message: Parent issue has commit.
@@ -168,10 +175,10 @@ app:
             jql: |
               project = %project%
               AND fixVersion IS EMPTY
-              AND status NOT IN (Open, Reopened, 'In Progress', Closed)
+              AND status NOT IN (%status_open%, Closed)
               AND issueFunction NOT IN hasSubtasks()
-              %top_level_issues%
-              %non_dev_issue_types%
+              AND type NOT IN (%subtask_types%)
+              AND type NOT IN (%non_dev_issue_types%)
           subIssuesHaveNotFixVersion:
 #            TODO implement using affectedVersion in making report.
             helper: missedFixVersion
@@ -187,7 +194,7 @@ app:
                 %default_quoted%'
               )
               AND fixVersion IS EMPTY
-              %status_not_done%
+              AND status IN (%status_open%, %status_resolved%)
               %non_dev_issue_types%
 
       #JQL aliases which might be used in JQL.
@@ -198,17 +205,21 @@ app:
       alias:
         #This is a default JQL alias and will be added authomatically
         default: >
-          AND (issuetype != Epic AND 'Epic Link' is EMPTY)
+          issuetype != Epic
         fix_version_released: >
-          AND fixversion in releasedVersions()
+          AND fixVersion in releasedVersions()
         fix_version_unreleased: >
-          AND fixversion in unreleasedVersions()
-        status_not_done: >
-          AND status IN (Open, Reopened, 'In Progress', Resolved, 'Review in Progress', Reviewed)
-        top_level_issues: >
-          AND type NOT IN ('Sub-Task Task', 'Sub-Task Technical task')
+          AND fixVersion in unreleasedVersions()
+        status_open: >
+          Open, Reopened, 'In Progress'
+        status_resolved: >
+          Resolved, 'Review in Progress', Reviewed
+        subtask_types: >
+          'Sub-Task Task', 'Sub-Task Technical task'
+        parent_issue_types: >
+          Story
         non_dev_issue_types: >
-          AND type NOT IN ('Sub-Task Question', Question, Issue, Risk, Test)
+          'Sub-Task Question', Question, Issue, Risk, Test
         not_affects_code_resolutions: >
           Cancelled, 'Cannot Reproduce', Declined, Duplicate, 'Not a Bug', 'Not Actual'
         not_affects_code_labels: >
