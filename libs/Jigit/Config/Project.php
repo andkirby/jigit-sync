@@ -8,9 +8,8 @@
 
 namespace Jigit\Config;
 
-use \Jigit\Config as Config;
+use Jigit\Config as Config;
 use Jigit\Exception;
-use \Jigit\Jira\Password as Password;
 use Jigit\UserException;
 
 /**
@@ -23,8 +22,8 @@ class Project extends Config
     /**#@+
      * Configuration paths
      */
-    const PATH_TARGET_FIX_VERSION             = 'app/jira/jql/alias/target_fix_version';
-    const PATH_TARGET_FIX_VERSION_IN_PROGRESS = 'app/jira/jql/alias/target_fix_version_in_progress';
+    const PATH_TARGET_FIX_VERSION             = 'app/jira/jql/alias/version';
+    const PATH_TARGET_FIX_VERSION_IN_PROGRESS = 'app/jira/jql/alias/version_in_progress';
     const PATH_ACTIVE_SPRINTS                 = 'app/jira/jql/alias/active_sprints';
     const PATH_VCS_BRANCH_LOW                 = 'app/git/branch_low';
     const PATH_VCS_BRANCH_TOP                 = 'app/git/branch_top';
