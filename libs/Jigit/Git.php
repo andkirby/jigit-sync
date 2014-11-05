@@ -109,14 +109,14 @@ class Git implements InterfaceVcs
      * @param null|string   $gitRoot
      * @return mixed
      */
-    public function runInProjectDir($command, $gitRoot = null)
+    public static function runInProjectDir($command, $gitRoot = null)
     {
         if (false === strpos($command, 'git ')) {
             $command = 'git ' . $command;
         }
         $gitRoot = $gitRoot ?: Config\Project::getProjectRoot();
         $command = str_replace('git ', "git --git-dir $gitRoot/.git/ ", $command);
-        return $this->run($command);
+        return self::run($command);
     }
 
     /**
@@ -161,7 +161,7 @@ class Git implements InterfaceVcs
      */
     static public function run($command)
     {
-        Config::addDebug('GIT command: ' . $command);
+        Config::addDebug('GIT command: ' . PHP_EOL . $command);
         return `$command`;
     }
 
@@ -259,15 +259,13 @@ class Git implements InterfaceVcs
      */
     public function isBranchValid($gitRoot, $branch)
     {
-        //@startSkipCommitHooks
-        $branchFound = (bool)$this->run("git --git-dir $gitRoot/.git/ branch -a --list $branch");
+        $branchFound = (bool)$this->runInProjectDir("branch -a --list $branch");
         if (!$branchFound) {
-            $branchFound = (bool)$this->run("git --git-dir $gitRoot/.git/ tag --list $branch");
+            $branchFound = (bool)$this->runInProjectDir("tag --list $branch");
             if (!$branchFound) {
                 throw new UserException("Branch or tag $branch not found.");
             }
         }
-        //@finishSkipCommitHooks
         return $branchFound;
     }
 

@@ -9,8 +9,8 @@
 namespace Jigit\Git\Helper;
 
 use Jigit\Config;
-use Jigit\Git;
 use Jigit\Exception;
+use Jigit\Git;
 
 /**
  * Class IssueInBranches
@@ -33,10 +33,7 @@ class IssueInBranches extends AbstractHelper
             throw new Exception('Issue key is not set.');
         }
 
-        $gitRoot = Config\Project::getProjectRoot();
-        //@startSkipCommitHooks
-        $log = Git::run(`git --git-dir $gitRoot/.git/ log --all --no-merges --grep="$issueKey"`);
-        //@finishSkipCommitHooks
+        $log = Git::runInProjectDir("log --all --no-merges --grep='$issueKey'");
         return (bool) $log;
     }
 }
