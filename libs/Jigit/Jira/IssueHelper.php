@@ -64,9 +64,7 @@ class IssueHelper
             if ($matches[1]) {
                 //get sprint name
                 $sprint .= ', ' . $matches[1][0];
-                return $sprint;
             }
-            return $sprint;
         }
         return $sprint;
     }
@@ -135,7 +133,7 @@ class IssueHelper
         }
         if (!$authors) {
             $assignee = $this->getIssueAssignee($issue);
-            $authors  = $assignee;
+            $authors  = $assignee . ' (assignee)';
         }
         return $authors;
     }
@@ -196,6 +194,6 @@ class IssueHelper
     public function getIssueAssignee(Issue $issue)
     {
         $assignee = $issue->getAssignee();
-        return $assignee['displayName'] . ' (assignee)';
+        return $assignee['displayName'];
     }
 }
