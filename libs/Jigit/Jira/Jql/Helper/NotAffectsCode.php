@@ -30,10 +30,22 @@ class NotAffectsCode extends DefaultHelper
     {
         if ($this->_isIssueInAnotherBranch($issue)) {
             //TODO implement separate validator to identify such issues
-            $this->_inDifferentBranch[] = $issue->getKey();
+            $this->_inDifferentBranch[$issue->getKey()] = $issue;
             return $this;
         }
         return parent::handleIssue($type, $issue);
+    }
+
+    /**
+     * Check found issues
+     *
+     * Added checking non-branch issues
+     *
+     * @return bool
+     */
+    public function hasFound()
+    {
+        return $this->_inDifferentBranch || parent::hasFound();
     }
 
     /**
@@ -44,9 +56,10 @@ class NotAffectsCode extends DefaultHelper
      */
     protected function _isIssueInAnotherBranch($issue)
     {
-        $key    = $issue->getKey();
         $helper = $this->getVcs()->getHelper('IssueInBranches');
-        return $helper->process($key);
+        return $helper->process(
+            $issue->getKey()
+        );
     }
 
     /**
@@ -74,7 +87,12 @@ class NotAffectsCode extends DefaultHelper
             $output->enableDecorator();
             $output->add('WARNING!!! Issues committed in a different branch.');
             $output->disableDecorator();
-            $output->add('Keys: ' . implode(', ', $this->_inDifferentBranch));
+            $output->add('Keys: ' . implode(', ', array_keys($this->_inDifferentBranch)));
+            $output->addDelimiter();
+
+            foreach ($this->_inDifferentBranch as $issue) {
+                $this->_addIssueIntoOutput($output, null, $issue);
+            }
         }
         return $this;
     }

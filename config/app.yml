@@ -112,10 +112,10 @@ app:
 #                  issueFunction IN parentsOf("project = %project% AND key IN (%vcs_keys%)")
 #                )
           notAffectsCodeWithFixVersion:
-            # Get issues which doesn't affects code
+            # Get issues which don't affect code
             helper: notAffectsCode
             in_progress: -1
-            message: Issues which doesn't affect the code.
+            message: Issues which don't affect the code.
             jql: |
               project = %project%
               AND (fixVersion = %version% OR affectedVersion = %version%)

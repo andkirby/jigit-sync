@@ -32,8 +32,6 @@ class IssueInBranches extends AbstractHelper
         if (!$issueKey) {
             throw new Exception('Issue key is not set.');
         }
-
-        $log = Git::runInProjectDir("log --all --no-merges --grep='$issueKey'");
-        return (bool) $log;
+        return (bool) Git::runInProjectDir("log --all --no-merges --grep=\"$issueKey\"");
     }
 }
