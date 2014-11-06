@@ -1,0 +1,25 @@
+project:
+  HAS:
+    root: d:/home/hastens
+    vcs:
+      version:
+        alias:
+          develop: v.develop
+    jira:
+      jql:
+        alias:
+          active_sprints:
+            - 1095
+            - 1862
+          not_affects_code_labels:
+            - nocode
+            - fixedIn
+            - QA_hours
+#          resolved_statuses:
+#            - Resolved
+#            - Reviewed
+#          finish_statuses:
+#            - Ready for Verification
+          default: (issuetype != Epic AND ('Epic Link' is EMPTY OR 'Epic Link' NOT IN (HAS-271, HAS-272, HAS-3223, HAS-319)))
+
+
