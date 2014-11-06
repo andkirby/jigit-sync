@@ -6,6 +6,7 @@ use chobie\Jira\Issue;
 use Jigit\Config;
 use Jigit\Jira\Jql;
 use Jigit\Output;
+use Lib\Exception;
 
 /**
  * Class WithoutFixVersion
@@ -63,7 +64,7 @@ class MissedFixVersion extends DefaultHelper
      * Check fix version added properly
      *
      * @param string $type
-     * @throws \Jigit\Exception
+     * @throws Exception
      * @return $this
      */
     public function process($type)
@@ -210,11 +211,11 @@ class MissedFixVersion extends DefaultHelper
         $vcsIssues         = array();
         $tags              = $this->_getVcsTags();
         $prevTag           = array_shift($tags);
-        $issueKeyIdsString = implode('|', $issueKeys);
+        $issuesRegular     = implode('[^0-9]|', $issueKeys) . '[^0-9]';
         foreach ($tags as $tag) {
             Config::addDebug("Find issues between: $prevTag..$tag");
             $log = $this->getVcs()->getLog(
-                $prevTag, $tag, $this->getVcs()->getLogFormat(), "--reverse -E --grep=\"($issueKeyIdsString)\""
+                $prevTag, $tag, $this->getVcs()->getLogFormat(), "--reverse -E --grep=\"($issuesRegular)\""
             );
             $issues = $this->getVcs()->aggregateCommitsByLog($log);
             if ($issues) {

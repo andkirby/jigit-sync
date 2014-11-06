@@ -193,7 +193,7 @@ app:
                 AND %default_quoted%'
               )
               AND fixVersion IS EMPTY
-              AND status IN (%status_open%, %status_resolved%)
+              AND status IN (%status_open%, %status_resolved%, Closed)
               AND type IN (%non_dev_issue_types%)
 
       #JQL aliases which might be used in JQL.
