@@ -177,16 +177,18 @@ class Jql
      */
     protected function _filterJqls($jqls, $filterData, $whiteList)
     {
+        $result = array();
         $filter     = $this->_getFilter();
-        foreach ($jqls as $type => &$item) {
+        foreach ($jqls as $type => $item) {
             if (!$whiteList || in_array($type, $whiteList)) {
                 if (!$item['jql']) {
                     throw new Exception("Empty JQL of type '$type'.");
                 }
                 $jql         = $this->_getDraftJqlString($item);
                 $item['jql'] = $filter->filter($jql, $filterData);
+                $result[$type] = $item;
             }
         }
-        return $jqls;
+        return $result;
     }
 }
