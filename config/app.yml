@@ -84,15 +84,20 @@ app:
             jql: |
               project = HAS
                 AND (
-                  key IN (%vcs_keys%)
+                  key IN (%vcs_keys%) AND type NOT IN (%subtask_types%)
+                  AND (fixVersion is EMPTY OR fixVersion != %version%)
+                  AND (affectedVersion != %version% OR affectedVersion is EMPTY)
+                  OR
+                  key IN (%vcs_keys%) AND type IN (%subtask_types%)
+                  AND (affectedVersion != %version% OR fixVersion != %version%)
                   OR
                   issueFunction IN parentsOf(
-                    "project = %project% AND key IN (%vcs_keys%)"
+                    "project = %project%
+                    AND key IN (%vcs_keys%)
+                    AND (fixVersion is EMPTY OR affectedVersion is EMPTY)"
                   )
-                ) AND (
-                  (fixVersion is EMPTY OR fixVersion != %version%)
-                  AND
-                  (affectedVersion != %version% OR affectedVersion is EMPTY)
+                  AND (fixVersion is EMPTY OR fixVersion != %version%)
+                  AND (affectedVersion != %version% OR affectedVersion is EMPTY)
                 )
 
             #Seem relasedIssuesMissedFixVersion covers this JQL
