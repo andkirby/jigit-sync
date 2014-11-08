@@ -100,22 +100,6 @@ app:
                   AND (affectedVersion != %version% OR affectedVersion is EMPTY)
                 )
 
-            #Seem relasedIssuesMissedFixVersion covers this JQL
-#          inBranchWithoutFixVersion:
-#            # Check issues which have to have fixVersion
-#            # TODO implement checking that completed issue has all completed sub-issues
-#            helper: withoutFixVersion
-#            in_progress: 1
-#            message: Has no fix version.
-#            jql: |
-#              project = %project%
-#                AND (fixVersion != %version% OR fixVersion is EMPTY)
-#                AND status NOT IN (%status_open%)
-#                AND (
-#                  key IN (%vcs_keys%) AND type NOT IN (%subtask_types%)
-#                  OR
-#                  issueFunction IN parentsOf("project = %project% AND key IN (%vcs_keys%)")
-#                )
           notAffectsCodeWithFixVersion:
             # Get issues which don't affect code
             helper: notAffectsCode
