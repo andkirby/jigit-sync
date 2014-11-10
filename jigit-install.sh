@@ -1,13 +1,6 @@
 #!/bin/sh
 echo "Fetching files from GitHub..."
 
-OUTPUT=$(git clone https://github.com/chobie/jira-api-restclient.git 2>&1)
-if echo "$OUTPUT" | grep -qE "error\:|fatal\:"; then
-    echo "Ooops.. Something wrong."
-    echo $OUTPUT
-    exit 1
-fi
-echo $OUTPUT
 OUTPUT=$(git clone https://github.com/andkirby/jigit-sync.git 2>&1)
 if echo "$OUTPUT" | grep -qE "error\:|fatal\:"; then
     echo "Ooops.. Something wrong."
@@ -17,6 +10,10 @@ fi
 echo $OUTPUT
 
 cd jigit-sync
+
+# Clone submodules
+git submodule init
+git submodule update
 
 echo "
 Getting into jigit-sync directory..."
