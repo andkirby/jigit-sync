@@ -8,11 +8,13 @@
 
 namespace Jigit;
 
+use Lib\BusinessException;
+
 /**
  * User exception
  *
  * @package Jigit
  */
-class UserException extends \Exception
+class UserException extends BusinessException
 {
 }
