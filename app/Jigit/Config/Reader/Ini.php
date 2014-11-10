@@ -8,7 +8,6 @@
 
 namespace Jigit\Config\Reader;
 use Jigit\Exception;
-use Jigit\UserException;
 
 /**
  * Class Ini

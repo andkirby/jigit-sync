@@ -8,7 +8,8 @@
 
 namespace Jigit\Dispatcher;
 use Jigit\Output;
-use \Jigit\Vcs\InterfaceVcs;
+use Jigit\Vcs\InterfaceVcs;
+
 /**
  * Interface Dispatcher
  *

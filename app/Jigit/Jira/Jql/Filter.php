@@ -8,11 +8,6 @@
 
 namespace Jigit\Jira\Jql;
 
-use Jigit\Data;
-use Jigit\Config\Jira;
-use Jigit\Config\Project;
-use Jigit\Exception;
-
 /**
  * Filter to replace JQL variables with values
  *
