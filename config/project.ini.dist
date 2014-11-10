@@ -1,7 +1,0 @@
-[SOMEPROJECT]
-project_git_root                    = d:/home/someproject
-git_branch_low                      = origin/master
-git_branch_top                      = origin/hotfix/1.0.10
-jira_target_fix_version             = v1.0.10
-jira_target_fix_version_in_progress = 1
-jira_active_sprints                 = 1095,1862

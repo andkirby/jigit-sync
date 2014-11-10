@@ -1,5 +1,5 @@
 <?php
-use \chobie\Jira as Jira;
+use Jigit\Jira as Jira;
 use JigitTest\Response;
 use JigitTest\Response\Issue;
 
@@ -38,7 +38,7 @@ class ApiStubTest extends PHPUnit_Framework_TestCase
     /**
      * Get JIRA API mock object
      *
-     * @param $response
+     * @param Response $response
      * @return Jira\Api|PHPUnit_Framework_MockObject_MockObject
      */
     protected function _getJiraApiMock($response)
