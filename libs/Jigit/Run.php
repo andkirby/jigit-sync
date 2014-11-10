@@ -149,7 +149,7 @@ class Run implements Dispatcher\InterfaceDispatcher
     protected function _getApi()
     {
         if (null === $this->_api) {
-            $this->_api = new Jira\Api(
+            $this->_api = new JigitJira\Api(
                 Config\Jira::getJiraUrl(),
                 new Jira\Api\Authentication\Basic(
                     Config\Jira::getUsername(), Config\Jira::getPassword()

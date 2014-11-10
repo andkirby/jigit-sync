@@ -311,30 +311,28 @@ STR;
     {
         $fields = $fields ?: $this->_getDefaultApiIssueFields();
         /** @var Api\Result $result */
-        $result = $this->getApi()->search($this->_jql[$type]['jql'], $offset, $max, $fields);
-        $this->_processErrors($result, $type);
+        try {
+            $result = $this->getApi()->search($this->_jql[$type]['jql'], $offset, $max, $fields);
+        } catch (Api\Exception $e) {
+            $this->_processApiErrors($e, $type);
+        }
         return $result;
     }
 
     /**
      * Process JIRA API errors
      *
-     * @param Api\Result $result
+     * @param Api\Exception $e
+     * @param string     $type
      * @throws Api\Exception
      * @return $this
      */
-    protected function _processErrors($result, $type)
+    protected function _processApiErrors($e, $type)
     {
-        $apiResult = $result->getResult();
-        if (!empty($apiResult['errorMessages'])) {
-            throw new Api\Exception(
-                "Error in JQL type: $type" . PHP_EOL
-                . 'API errors: ' . PHP_EOL
-                . implode(PHP_EOL, $apiResult['errorMessages']) . PHP_EOL
-                . 'JQL:' . PHP_EOL . $this->_jql[$type]['jql']
-            );
-        }
-        return $this;
+        throw new Api\Exception(
+            "Error in JQL type: $type" . PHP_EOL
+            . $e->getMessage()
+        );
     }
 
     /**
