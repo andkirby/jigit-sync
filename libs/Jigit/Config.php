@@ -16,7 +16,7 @@ use Symfony\Component\Yaml\Parser;
  *
  * @package Jigit
  */
-class Config extends \Zend_Config
+class Config
 {
     /**
      * Instance
