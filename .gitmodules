@@ -1,0 +1,3 @@
+[submodule "libs/JiraRestApi"]
+	path = libs/JiraRestApi
+	url = https://github.com/chobie/jira-api-restclient.git/
