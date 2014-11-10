@@ -6,17 +6,12 @@
  * Time: 12:09 AM
  */
 
-namespace App;
+namespace Jigit;
 use chobie\Jira as Jira;
 use Jigit\Config;
 use Jigit\Config\Reader as Reader;
 use Jigit\Dispatcher;
-use Jigit\Exception;
-use Jigit\Git;
 use Jigit\Jira as JigitJira;
-use Jigit\Output;
-use Jigit\Report;
-use Jigit\UserException;
 use Lib\Config as LibConfig;
 
 /**

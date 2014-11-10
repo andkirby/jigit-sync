@@ -1,10 +1,10 @@
 <?php
 require_once 'jira-init.php'; //initialize
 
-use \Jigit\Output as Output;
-use \Jigit\Jira as JigitJira;
-use \Jigit\Config;
-use \chobie\Jira as Jira;
+use chobie\Jira as Jira;
+use Jigit\Config;
+use Jigit\Jira as JigitJira;
+use Jigit\Output as Output;
 use Jigit\UserException;
 
 $output = new Output();
@@ -15,7 +15,7 @@ try {
     reset($_GET);
     $action = key($_GET);
     unset($_GET[$action]);
-    $runner = new App\Run();
+    $runner = new Jigit\Run();
     $runner->run($action, $_GET, $output);
     //@finishSkipCommitHooks
 } catch (UserException $e) {

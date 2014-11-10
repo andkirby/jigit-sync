@@ -164,6 +164,8 @@ class Git implements InterfaceVcs
     /**
      * Get commits grouped by jira keys.
      *
+     * This method will return only commits which passed log contains
+     *
      * @param string $log
      * @param string $project
      * @return array
