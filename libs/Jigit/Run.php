@@ -448,6 +448,15 @@ class Run implements Dispatcher\InterfaceDispatcher
         ) {
             throw new UserException('Please specify your branch top and branch low.');
         }
+
+        if (Config\Project::getVcsForceRemoteStatus()) {
+            //add remote name prefix
+            $remoteNamePrefix = Config\Project::getVcsRemoteName();
+            $versionAliases[$fixVersion]['branch_low'] =
+                $remoteNamePrefix . '/' . $versionAliases[$fixVersion]['branch_low'];
+            $versionAliases[$fixVersion]['branch_top'] =
+                $remoteNamePrefix . '/' . $versionAliases[$fixVersion]['branch_top'];
+        }
         return $versionAliases[$fixVersion];
     }
 
@@ -457,7 +466,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      * @param string $fixVersion
      * @throws Exception
      * @throws UserException
-     * @return array
+     * @return array|null
      * @todo Actually this method contains two methods
      * @todo Methods to implement: 1) getTargetBranchesFromVcsBranches 2) getTargetBranchesFromVcsTags
      */
@@ -475,6 +484,11 @@ class Run implements Dispatcher\InterfaceDispatcher
         $regular               = '~' . $startRegular
             . '(\S*?'. $versionPrefixInBranch . str_replace('.', '\.', $version) . ').*~';
         preg_match($regular, $branchesList, $matches);
+
+        if (!Config\Project::getVcsForceRemoteStatus() && false !== strpos($matches[0], 'remote')) {
+            //force using remote because no local branches
+            Config\Project::setVcsForceRemoteStatus(true);
+        }
 
         if ($matches && !empty($matches[2])) {
             $branchTop = $matches[2];

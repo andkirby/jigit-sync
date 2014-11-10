@@ -259,6 +259,18 @@ class Project extends Config
     }
 
     /**
+     * Set JIRA JQL configuration
+     *
+     * @param (bool) $flag
+     * @throws Exception
+     * @return bool
+     */
+    static public function setVcsForceRemoteStatus($flag)
+    {
+        return self::getInstance()->getData((bool)$flag);
+    }
+
+    /**
      * Get JIRA JQL configuration
      *
      * @throws Exception
