@@ -1,7 +1,6 @@
 <?php
 namespace Jigit\Jira\Jql\Helper;
 
-use chobie\Jira\Api;
 use chobie\Jira\Issue;
 use Jigit\Config;
 use Jigit\Jira\Jql;

@@ -8,10 +8,8 @@
 
 namespace Jigit;
 
-use chobie\Jira as Jira;
 use Jigit\Config;
 use Jigit\Dispatcher\InterfaceDispatcher;
-use Jigit\Jira as JigitJira;
 
 /**
  * Class Report
@@ -23,7 +21,7 @@ class Report
     /**
      * Helpers
      *
-     * @var JigitJira\Jql\Helper\DefaultHelper[]
+     * @var Jira\Jql\Helper\DefaultHelper[]
      */
     protected $_helpers;
 
@@ -174,7 +172,7 @@ class Report
      * Get JQL helper
      *
      * @param array $jql
-     * @return JigitJira\Jql\Helper\DefaultHelper
+     * @return Jira\Jql\Helper\DefaultHelper
      */
     protected function _getJqlHelper($jql)
     {

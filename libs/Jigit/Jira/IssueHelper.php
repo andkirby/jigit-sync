@@ -1,7 +1,6 @@
 <?php
 namespace Jigit\Jira;
 
-use chobie\Jira\Api;
 use chobie\Jira\Issue;
 use Jigit\Vcs\InterfaceVcs;
 

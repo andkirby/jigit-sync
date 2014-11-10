@@ -9,9 +9,10 @@
  */
 $includePaths = array(
     get_include_path(),
-    realpath(__DIR__ . '/'),
-    realpath(__DIR__ . '/libs/'),
-    realpath(__DIR__ . '/../jira-api-restclient/src'),
+    realpath(APP_ROOT . '/'),
+    realpath(APP_ROOT . '/libs/'),
+    realpath(APP_ROOT . '/../jira-api-restclient/src'),
+    realpath(APP_ROOT . '/app/'),
 );
 set_include_path(implode(PATH_SEPARATOR, $includePaths));
 

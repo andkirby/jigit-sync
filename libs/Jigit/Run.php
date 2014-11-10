@@ -1,17 +1,9 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: kirby
- * Date: 8/15/2014
- * Time: 12:09 AM
- */
-
 namespace Jigit;
-use chobie\Jira as Jira;
+
+use chobie\Jira as JiraLib;
 use Jigit\Config;
-use Jigit\Config\Reader as Reader;
 use Jigit\Dispatcher;
-use Jigit\Jira as JigitJira;
 use Lib\Config as LibConfig;
 
 /**
@@ -149,9 +141,9 @@ class Run implements Dispatcher\InterfaceDispatcher
     protected function _getApi()
     {
         if (null === $this->_api) {
-            $this->_api = new JigitJira\Api(
+            $this->_api = new Jira\Api(
                 Config\Jira::getJiraUrl(),
-                new Jira\Api\Authentication\Basic(
+                new JiraLib\Api\Authentication\Basic(
                     Config\Jira::getUsername(), Config\Jira::getPassword()
                 )
             );
@@ -180,7 +172,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     protected function _getJqls($gitKeys, $action)
     {
-        $jqls = new JigitJira\Jql($action);
+        $jqls = new Jira\Jql($action);
         return $jqls->getJqls($gitKeys);
     }
 

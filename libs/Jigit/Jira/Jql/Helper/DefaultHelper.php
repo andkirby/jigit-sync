@@ -1,11 +1,11 @@
 <?php
 namespace Jigit\Jira\Jql\Helper;
 
-use chobie\Jira\Api;
 use chobie\Jira\Issue;
 use Jigit\Config;
 use Jigit\Exception;
 use Jigit\Git;
+use Jigit\Jira\Api;
 use Jigit\Jira\IssueHelper;
 use Jigit\Output;
 
