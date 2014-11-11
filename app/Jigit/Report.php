@@ -111,10 +111,15 @@ class Report
         }
 
         $found = false;
-        foreach ($this->_helpers as $n =>  $helper) {
+        foreach ($this->_helpers as $name => $helper) {
             if ($helper->hasFound()) {
                 $found = true;
-                $helper->addOutput($this->_getOutput());
+                $outputHelper = $this->_getOutputHelper($name);
+                $outputHelper->setHelper($helper)
+                    ->setResult($helper->getResult())
+                    ->setVcs($this->getVcs());
+
+                $outputHelper->addOutput($this->_getOutput());
             }
         }
         if (!$found) {
@@ -186,5 +191,18 @@ class Report
         }
         $this->_helpers[$helperName]->setJql($jql);
         return $this->_helpers[$helperName];
+    }
+
+    /**
+     * Get output helper
+     *
+     * @param string $name
+     * @return Output\Cli\DefaultHelper
+     */
+    protected function _getOutputHelper($name)
+    {
+        $className = '\Jigit\Output\Cli\\' . $name;
+        /** @var Output\Cli\DefaultHelper $helper */
+        return new $className();
     }
 }

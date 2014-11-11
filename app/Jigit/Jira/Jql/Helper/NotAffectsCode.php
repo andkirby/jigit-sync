@@ -3,7 +3,6 @@ namespace Jigit\Jira\Jql\Helper;
 
 use chobie\Jira\Issue;
 use Jigit\Jira\Jql;
-use Jigit\Output;
 
 /**
  * Class NotAffectsCode
@@ -13,11 +12,25 @@ use Jigit\Output;
 class NotAffectsCode extends DefaultHelper
 {
     /**
-     * Issues in different branch
-     *
-     * @var array
+     * Extra type for issues list which affects another branches
      */
-    protected $_inDifferentBranch = array();
+    const TYPE_IN_DIFFERENT_BRANCH = 'inDifferentBranch';
+
+    /**
+     * Add extra type
+     */
+    public function __construct()
+    {
+        parent::__construct();
+        $this->setJql(
+            array(
+                'type'          => self::TYPE_IN_DIFFERENT_BRANCH,
+                'message'       => 'WARNING!!! Issues committed in a different branch.',
+                'jql'           => ' ',
+                'in_progress'   => '',
+            )
+        );
+    }
 
     /**
      * Handle issue
@@ -29,9 +42,8 @@ class NotAffectsCode extends DefaultHelper
     public function handleIssue($type, Issue $issue)
     {
         if ($this->_isIssueInAnotherBranch($issue)) {
-            //TODO implement separate validator to identify such issues
-            $this->_inDifferentBranch[$issue->getKey()] = $issue;
-            return $this;
+            //add issue into another type
+            $type = self::TYPE_IN_DIFFERENT_BRANCH;
         }
         return parent::handleIssue($type, $issue);
     }
@@ -45,7 +57,7 @@ class NotAffectsCode extends DefaultHelper
      */
     public function hasFound()
     {
-        return $this->_inDifferentBranch || parent::hasFound();
+        return parent::hasFound();
     }
 
     /**
@@ -60,40 +72,5 @@ class NotAffectsCode extends DefaultHelper
         return $helper->process(
             $issue->getKey()
         );
-    }
-
-    /**
-     * Add output
-     *
-     * @param Output $output
-     * @return $this
-     */
-    public function addOutput($output)
-    {
-        parent::addOutput($output);
-        $this->_addDifferentBranchIssuesOutput($output);
-        return $this;
-    }
-
-    /**
-     * Add different branch issues output
-     *
-     * @param Output $output
-     * @return $this
-     */
-    protected function _addDifferentBranchIssuesOutput(Output $output)
-    {
-        if ($this->_inDifferentBranch) {
-            $output->enableDecorator();
-            $output->add('WARNING!!! Issues committed in a different branch.');
-            $output->disableDecorator();
-            $output->add('Keys: ' . implode(', ', array_keys($this->_inDifferentBranch)));
-            $output->addDelimiter();
-
-            foreach ($this->_inDifferentBranch as $issue) {
-                $this->_addIssueIntoOutput($output, null, $issue);
-            }
-        }
-        return $this;
     }
 }

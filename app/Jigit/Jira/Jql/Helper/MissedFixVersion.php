@@ -1,11 +1,10 @@
 <?php
 namespace Jigit\Jira\Jql\Helper;
 
-use chobie\Jira\Issue;
 use Jigit\Config;
 use Jigit\Jira\Api;
+use Jigit\Jira\Issue;
 use Jigit\Jira\Jql;
-use Jigit\Output;
 use Lib\Exception;
 
 /**
@@ -21,11 +20,9 @@ class MissedFixVersion extends DefaultHelper
     const ISSUES_COUNT = 300;
 
     /**
-     * Issues which not in code
-     *
-     * @var Issue[][]
+     * Type name of issues which don't affect a code
      */
-    protected $_issuesNotInCode;
+    const TYPE_ISSUES_NOT_IN_CODE    = 'issuesNotInCode';
 
     /**
      * Missed issue versions
@@ -35,11 +32,20 @@ class MissedFixVersion extends DefaultHelper
     protected $_missedIssueVersions;
 
     /**
-     * Issues in different branch
-     *
-     * @var array
+     * Add extra type
      */
-    protected $_inDifferentBranch = array();
+    public function __construct()
+    {
+        parent::__construct();
+        $this->setJql(
+            array(
+                'type'          => self::TYPE_ISSUES_NOT_IN_CODE,
+                'message'       => 'Following issues should get version(s)',
+                'jql'           => ' ',
+                'in_progress'   => '',
+            )
+        );
+    }
 
     /**
      * Handle issue
@@ -55,7 +61,7 @@ class MissedFixVersion extends DefaultHelper
             parent::handleIssue($type, $issue);
             $this->_missedIssueVersions[$type][$issue->getKey()] = $versions;
         } else {
-            unset($this->_issuesNotInCode[$type][$issue->getKey()]);
+            parent::handleIssue(self::TYPE_ISSUES_NOT_IN_CODE, $issue);
         }
         return $this;
     }
@@ -78,12 +84,12 @@ class MissedFixVersion extends DefaultHelper
         }
 
         $vcsIssues = $this->_findIssuesInVcs($issueKeys);
-        $this->_issuesNotInCode[$type] = $issues;
+        $issuesNotInCode[$type] = $issues;
         $issueKeyIdsInTags = array();
         foreach ($vcsIssues as $tag => $ids) {
             foreach ($ids as $id) {
                 $issueKeyIdsInTags[$id][] = $tag;
-                unset($this->_issuesNotInCode[$type][$id]);
+                unset($issuesNotInCode[$type][$id]);
             }
         }
         if ($issueKeyIdsInTags) {
@@ -93,6 +99,12 @@ class MissedFixVersion extends DefaultHelper
                     $type, $issues[$id],
                     $this->_getIssueMissedVersions($issues[$id], $versions)
                 );
+            }
+        }
+        if ($issuesNotInCode) {
+            //add issues not in the code
+            foreach ($issuesNotInCode as $id => $issue) {
+                $this->handleIssue($type, $issues[$id]);
             }
         }
         return $this;
@@ -110,62 +122,23 @@ class MissedFixVersion extends DefaultHelper
     }
 
     /**
-     * Add additional output header
-     *
-     * @param Output $output
-     * @param string $jqlType
-     * @return $this
-     */
-    protected function _addOutputHeader(Output $output, $jqlType)
-    {
-        parent::_addOutputHeader($output, $jqlType);
-        $output->add('Following issues should get version(s):');
-        return $this;
-    }
-
-    /**
-     * Get issue content block
+     * Get required issue version
      *
      * @param string $jqlType
      * @param Issue  $issue
      * @return array
      */
-    protected function _getIssueContentBlock($jqlType, $issue)
+    public function getRequiredIssueVersions($jqlType, $issue)
     {
         $versions = $this->_missedIssueVersions[$jqlType][$issue->getKey()];
-        if ($this->_isLineSimpleView()) {
-            //return "line" issue view
-            $versions = implode(', ', $versions);
-            return parent::_getIssueContentBlock($jqlType, $issue) . ": $versions";
-        }
-
-        $strIssue = parent::_getIssueContentBlock($jqlType, $issue);
-        $requiredFixVersion = array_pop($versions);
-        $strIssue .= PHP_EOL . "REQUIRED FixVersion:          {$requiredFixVersion}";
+        $requiredVersions = array(
+            'fix'    => array(array_pop($versions)),
+            'affect' => array(),
+        );
         if ($versions) {
-            $versions = implode(', ', $versions);
-            $strIssue .= PHP_EOL . "REQUIRED AffectsVersion/s:{$versions}";
+            $requiredVersions['affect'] = $versions;
         }
-        return $strIssue;
-    }
-
-    /**
-     * Add post output
-     *
-     * @param Output $output
-     * @param string $jqlType
-     * @return $this
-     */
-    protected function _postOutput(Output $output, $jqlType)
-    {
-        //add report about not exists issues
-        if (!empty($this->_issuesNotInCode[$jqlType])) {
-            $output->addDelimiter();
-            $output->add('Following issues were not found in VCS:');
-            $keys = implode(', ', array_keys($this->_issuesNotInCode[$jqlType]));
-            $output->add($keys);
-        }
-        return $this;
+        return $versions;
     }
 
     /**

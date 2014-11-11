@@ -7,7 +7,6 @@ use Jigit\Exception;
 use Jigit\Git;
 use Jigit\Jira\Api;
 use Jigit\Jira\IssueHelper;
-use Jigit\Output;
 
 /**
  * Class DefaultHelper
@@ -28,7 +27,7 @@ class DefaultHelper
      *
      * @var array
      */
-    protected $_jql;
+    protected $_jqlItems;
 
     /**
      * JQL item info
@@ -43,6 +42,13 @@ class DefaultHelper
      * @var Api
      */
     protected $_api;
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+    }
 
     /**
      * Get VCS
@@ -98,7 +104,7 @@ class DefaultHelper
     public function setJql($jql)
     {
         if (empty($jql['type'])) {
-            throw new Exception('Unknown JQL type.');
+            throw new Exception('Empty JQL type.');
         }
         $type = $jql['type'];
         if (empty($jql['message'])) {
@@ -107,10 +113,10 @@ class DefaultHelper
         if (empty($jql['jql'])) {
             throw new Exception("Empty JQL in JQL type '$type'.");
         }
-        if (!isset($jql['jql'])) {
+        if (!isset($jql['in_progress'])) {
             throw new Exception("Empty 'in_progress' key in JQL type '$type'.");
         }
-        $this->_jql[$type] = $jql;
+        $this->_jqlItems[$type] = $jql;
         return $this;
     }
 
@@ -172,8 +178,8 @@ class DefaultHelper
      */
     public function canProcessJql($type)
     {
-        return (int)Config\Project::getJiraTargetFixVersionInProgress() === (int)$this->_jql[$type]['in_progress']
-            || '-1' == $this->_jql[$type]['in_progress'];
+        return (int)Config\Project::getJiraTargetFixVersionInProgress() === (int)$this->_jqlItems[$type]['in_progress']
+            || '-1' == $this->_jqlItems[$type]['in_progress'];
     }
 
     /**
@@ -184,118 +190,6 @@ class DefaultHelper
     public function hasFound()
     {
         return (bool)$this->_result;
-    }
-
-    /**
-     * Add result output
-     *
-     * @param Output $output
-     * @return $this
-     */
-    public function addOutput($output)
-    {
-        foreach (array_keys($this->_jql) as $type) {
-            $this->_addJqlOutput($output, $type);
-        }
-        return $this;
-    }
-
-    /**
-     * Add JQL output
-     *
-     * @param Output $output
-     * @param string $jqlType
-     * @internal param array $jql
-     * @return $this
-     */
-    protected function _addJqlOutput(Output $output, $jqlType)
-    {
-        if (!empty($this->_result[$jqlType])) {
-            $this->_addOutputHeader($output, $jqlType);
-            $output->add('Keys: ' . implode(', ', array_keys($this->_result[$jqlType])));
-            foreach ($this->_result[$jqlType] as $issue) {
-                $this->_addIssueIntoOutput($output, $jqlType, $issue);
-            }
-        }
-        $this->_postOutput($output, $jqlType);
-        return $this;
-    }
-
-    /**
-     * Add post output
-     *
-     * @param Output $output
-     * @param string $jqlType
-     * @return $this
-     */
-    protected function _postOutput(Output $output, $jqlType)
-    {
-        return $this;
-    }
-
-    /**
-     * Get issue content block
-     *
-     * @param string $jqlType
-     * @param Issue  $issue
-     * @return array
-     */
-    protected function _getIssueContentBlock($jqlType, $issue)
-    {
-        if ($this->_isLineSimpleView()) {
-            $strIssue = "{$issue->getKey()}";
-        } elseif (Config\Jira::getIssueViewSimple()) {
-            $strIssue = "{$issue->getKey()}: {$issue->getSummary()}";
-        } else {
-            $authors = $this->_getIssueHelper()->getIssueAuthors(
-                $issue, $this->getVcs()->getCommits()
-            );
-            $authors = implode(', ', $authors);
-            $issueHelper       = $this->_getIssueHelper();
-            $sprint            = $issueHelper->getIssueSprint($issue);
-            $status            = $issueHelper->getIssueStatus($issue);
-            $type              = $issueHelper->getIssueType($issue);
-            $affectedVersions  = implode(', ', $issueHelper->getIssueAffectsVersions($issue));
-            $fixVersionsString = implode(', ', $issueHelper->getIssueFixVersions($issue));
-
-//@startSkipCommitHooks
-            $strIssue          = <<<STR
-{$issue->getKey()}: {$issue->getSummary()}
-Type:              {$type}
-AffectedVersion/s: {$affectedVersions}
-FixVersion/s:      {$fixVersionsString}
-Status:            {$status}
-Sprint:            {$sprint}
-Author/s:          {$authors}
-STR;
-//@finishSkipCommitHooks
-        }
-        return $strIssue;
-    }
-
-    /**
-     * Get issue helper
-     *
-     * @return IssueHelper
-     */
-    protected function _getIssueHelper()
-    {
-        return new IssueHelper();
-    }
-
-    /**
-     * Add output header
-     *
-     * @param Output $output
-     * @param string $jqlType
-     * @return $this
-     */
-    protected function _addOutputHeader(Output $output, $jqlType)
-    {
-        $output->enableDecorator();
-        $output->add($this->_jql[$jqlType]['message']);
-        $output->disableDecorator();
-        return $this;
     }
 
     /**
@@ -312,7 +206,7 @@ STR;
         $fields = $fields ?: $this->_getDefaultApiIssueFields();
         /** @var Api\Result $result */
         try {
-            $result = $this->getApi()->search($this->_jql[$type]['jql'], $offset, $max, $fields);
+            $result = $this->getApi()->search($this->_jqlItems[$type]['jql'], $offset, $max, $fields);
         } catch (Api\Exception $e) {
             $this->_processApiErrors($e, $type);
         }
@@ -330,8 +224,7 @@ STR;
     protected function _processApiErrors($e, $type)
     {
         throw new Api\Exception(
-            "Error in JQL type: $type" . PHP_EOL
-            . $e->getMessage()
+            "Error in JQL type: $type" . PHP_EOL . $e->getMessage()
         );
     }
 
@@ -346,41 +239,43 @@ STR;
     }
 
     /**
-     * Add issue into output
-     *
-     * @param Output $output
-     * @param string $jqlType
-     * @param Issue  $issue
-     * @return $this
-     */
-    protected function _addIssueIntoOutput(Output $output, $jqlType, $issue)
-    {
-        if (!$this->_isLineSimpleView()) {
-            $output->addDelimiter();
-        }
-        $output->add($this->_getIssueContentBlock($jqlType, $issue));
-        return $this;
-    }
-
-    /**
-     * Check line simple view
-     *
-     * @return bool
-     */
-    protected function _isLineSimpleView()
-    {
-        return 'line' === Config\Jira::getIssueViewSimple();
-    }
-
-    /**
      * Get result issues list
      *
      * @return array
      */
     public function getResult()
     {
-        return array(
-            $this->_result
-        );
+        return $this->_result;
+    }
+
+    /**
+     * Get all JQL types
+     *
+     * @return array
+     */
+    public function getJqlTypes()
+    {
+        return array_keys($this->_jqlItems);
+    }
+
+    /**
+     * Get issue helper
+     *
+     * @return IssueHelper
+     */
+    protected function _getIssueHelper()
+    {
+        return new IssueHelper();
+    }
+
+    /**
+     * Get JQL item
+     *
+     * @param string $type
+     * @return array|null
+     */
+    public function getJql($type)
+    {
+        return isset($this->_jqlItems[$type]) ? $this->_jqlItems[$type] : null;
     }
 }

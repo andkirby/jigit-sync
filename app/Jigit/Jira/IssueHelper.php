@@ -1,8 +1,6 @@
 <?php
 namespace Jigit\Jira;
 
-use chobie\Jira\Issue;
-
 /**
  * Class IssueHelper created to make easy way to get fields information
  *
