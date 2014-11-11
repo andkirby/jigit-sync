@@ -2,7 +2,6 @@
 namespace Jigit\Jira;
 
 use chobie\Jira\Issue;
-use Jigit\Vcs\InterfaceVcs;
 
 /**
  * Class IssueHelper created to make easy way to get fields information
@@ -77,8 +76,7 @@ class IssueHelper
     public function getIssueStatus($issue)
     {
         $status = $issue->getStatus();
-        $status = $status['name'];
-        return $status;
+        return isset($status['name']) ? $status['name'] : null;
     }
 
     /**
@@ -93,36 +91,12 @@ class IssueHelper
         $type = $type['name'];
         return $type;
     }
-    /**
-     * Get authors by JQL type
-     *
-     * @deprecated
-     * @param array            $jqlItem
-     * @param Issue       $issue
-     * @param Api         $api
-     * @param InterfaceVcs $vcs
-     * @return array|string
-     */
-    public function getAuthorsByJqlType($jqlItem, $issue, Api $api, InterfaceVcs $vcs)
-    {
-        $authors = array();
-        if (Jql::TYPE_WITHOUT_FIX_VERSION == $jqlItem['type']
-            || Jql::TYPE_OPEN_FOR_IN_PROGRESS_VERSION == $jqlItem['type']
-        ) {
-            return $this->getIssueAuthors($api, $issue, $vcs->getCommits());
-        } elseif (Jql::TYPE_NOT_AFFECTS_CODE == $jqlItem['type']) {
-            $authors = $this->getIssueAuthors($api, $issue, array());
-        }
-        return $authors;
-    }
 
     /**
      * Get issue sprints
      *
      * @param Issue $issue
-     * @param Api   $api
-     * @param Issue $issue
-     * @param array      $gitKeys
+     * @param array $gitKeys
      * @return array
      */
     public function getIssueAuthors(Issue $issue, $gitKeys)

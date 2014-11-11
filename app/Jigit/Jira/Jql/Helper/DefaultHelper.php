@@ -371,4 +371,16 @@ STR;
     {
         return 'line' === Config\Jira::getIssueViewSimple();
     }
+
+    /**
+     * Get result issues list
+     *
+     * @return array
+     */
+    public function getResult()
+    {
+        return array(
+            $this->_result
+        );
+    }
 }
