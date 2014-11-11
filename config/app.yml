@@ -158,6 +158,7 @@ app:
               AND (Sprint NOT IN (%active_sprints%) OR Sprint IS EMPTY)
         push-tasks: #"push-tasks" action to check and update fixVersion
           issuesHaveNotFixVersion:
+            in_progress: -1
             helper: missedFixVersion
             message: Issues which must have fixVersion.
             jql: |
@@ -168,6 +169,7 @@ app:
               AND type NOT IN (%subtask_types%)
               AND type NOT IN (%non_dev_issue_types%)
           subIssuesHaveNotFixVersion:
+            in_progress: -1
 #            TODO implement using affectedVersion in making report.
             helper: missedFixVersion
             message: >

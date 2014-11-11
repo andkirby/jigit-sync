@@ -42,7 +42,7 @@ class MissedFixVersion extends DefaultHelper
                 'type'          => self::TYPE_ISSUES_NOT_IN_CODE,
                 'message'       => 'Following issues should get version(s)',
                 'jql'           => ' ',
-                'in_progress'   => '',
+                'in_progress'   => '-1',
             )
         );
     }
@@ -52,12 +52,11 @@ class MissedFixVersion extends DefaultHelper
      *
      * @param string $type
      * @param Issue  $issue
-     * @internal param array $versions
+     * @param array  $versions
      * @return $this
      */
-    public function handleIssue($type, Issue $issue)
+    public function handleIssue($type, Issue $issue, $versions = array())
     {
-        $versions = func_get_arg(2);
         if ($versions) {
             parent::handleIssue($type, $issue);
             $this->_missedIssueVersions[$type][$issue->getKey()] = $versions;

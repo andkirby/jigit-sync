@@ -27,7 +27,7 @@ class NotAffectsCode extends DefaultHelper
                 'type'          => self::TYPE_IN_DIFFERENT_BRANCH,
                 'message'       => 'WARNING!!! Issues committed in a different branch.',
                 'jql'           => ' ',
-                'in_progress'   => '',
+                'in_progress'   => '-1',
             )
         );
     }
