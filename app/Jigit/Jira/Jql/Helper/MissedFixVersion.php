@@ -52,11 +52,12 @@ class MissedFixVersion extends DefaultHelper
      *
      * @param string $type
      * @param Issue  $issue
-     * @param array  $versions
+     * @internal param array $versions
      * @return $this
      */
-    public function handleIssue($type, Issue $issue, $versions = array())
+    public function handleIssue($type, Issue $issue)
     {
+        $versions = func_get_arg(2);
         if ($versions) {
             parent::handleIssue($type, $issue);
             $this->_missedIssueVersions[$type][$issue->getKey()] = $versions;
