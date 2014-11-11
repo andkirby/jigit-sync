@@ -3,6 +3,7 @@ namespace Jigit\Jira\Jql\Helper;
 
 use chobie\Jira\Issue;
 use Jigit\Config;
+use Jigit\Jira\Api;
 use Jigit\Jira\Jql;
 use Jigit\Output;
 use Lib\Exception;
