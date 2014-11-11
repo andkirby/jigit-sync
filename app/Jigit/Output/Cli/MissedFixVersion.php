@@ -22,6 +22,10 @@ class MissedFixVersion extends DefaultHelper
         $strIssue = parent::_getIssueContentBlock($jqlType, $issue);
 
         $versions = $this->getHelper()->getRequiredIssueVersions($jqlType, $issue);
+        if (!$versions) {
+            return $strIssue;
+        }
+
         if ($this->_isLineSimpleView()) {
             $versions = array_merge($versions['fix'], $versions['affect']);
             $versions = implode(', ', $versions);

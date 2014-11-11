@@ -37,10 +37,11 @@ class MissedFixVersion extends DefaultHelper
     public function __construct()
     {
         parent::__construct();
+        //TODO implement ability to check not exists issues in other branches
         $this->setJql(
             array(
                 'type'          => self::TYPE_ISSUES_NOT_IN_CODE,
-                'message'       => 'Following issues should get version(s)',
+                'message'       => 'Following issues were not found in VCS',
                 'jql'           => ' ',
                 'in_progress'   => '-1',
             )
@@ -84,28 +85,21 @@ class MissedFixVersion extends DefaultHelper
         }
 
         $vcsIssues = $this->_findIssuesInVcs($issueKeys);
-        $issuesNotInCode[$type] = $issues;
+
+        //collect tags per issue
         $issueKeyIdsInTags = array();
-        foreach ($vcsIssues as $tag => $ids) {
-            foreach ($ids as $id) {
-                $issueKeyIdsInTags[$id][] = $tag;
-                unset($issuesNotInCode[$type][$id]);
+        foreach ($vcsIssues as $tag => $taggedIssueKeys) {
+            foreach ($taggedIssueKeys as $issueKey) {
+                $issueKeyIdsInTags[$issueKey][] = $tag;
             }
         }
-        if ($issueKeyIdsInTags) {
-            //check exists fixVersion
-            foreach ($issueKeyIdsInTags as $id => $versions) {
-                $this->handleIssue(
-                    $type, $issues[$id],
-                    $this->_getIssueMissedVersions($issues[$id], $versions)
-                );
+
+        foreach ($issues as $issueKey => $issue) {
+            $requiredVersions = array();
+            if (isset($issueKeyIdsInTags[$issueKey])) {
+                $requiredVersions = $this->_getIssueMissedVersions($issue, $issueKeyIdsInTags[$issueKey]);
             }
-        }
-        if ($issuesNotInCode) {
-            //add issues not in the code
-            foreach ($issuesNotInCode as $id => $issue) {
-                $this->handleIssue($type, $issues[$id]);
-            }
+            $this->handleIssue($type, $issue, $requiredVersions);
         }
         return $this;
     }
@@ -130,6 +124,9 @@ class MissedFixVersion extends DefaultHelper
      */
     public function getRequiredIssueVersions($jqlType, $issue)
     {
+        if (!isset($this->_missedIssueVersions[$jqlType][$issue->getKey()])) {
+            return array();
+        }
         $versions = $this->_missedIssueVersions[$jqlType][$issue->getKey()];
         $requiredVersions = array(
             'fix'    => array(array_pop($versions)),
@@ -138,7 +135,7 @@ class MissedFixVersion extends DefaultHelper
         if ($versions) {
             $requiredVersions['affect'] = $versions;
         }
-        return $versions;
+        return $requiredVersions;
     }
 
     /**
