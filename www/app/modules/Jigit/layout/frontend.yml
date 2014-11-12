@@ -1,7 +1,10 @@
 jigit_x_x:
   _reference:
-    root:
+    head:
       _action:
         - setData:
+          - title
+          - JiGIT Sync Tool
+        - removeLink:
           - title
           - JiGIT Sync Tool
