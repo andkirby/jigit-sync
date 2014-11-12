@@ -93,7 +93,8 @@ class Request
      */
     public function getControllerName()
     {
-        return $this->getGetParam('c', 'index');
+        $name = 'c';
+        return $this->getGetParam($name, $this->_getDefaultParam($name));
     }
 
     /**
@@ -103,7 +104,8 @@ class Request
      */
     public function getModuleName()
     {
-        return $this->getGetParam('m', 'app');
+        $name = 'm';
+        return $this->getGetParam($name, $this->_getDefaultParam($name));
     }
 
     /**
@@ -113,7 +115,8 @@ class Request
      */
     public function getActionName()
     {
-        return $this->getGetParam('a', 'index');
+        $name = 'a';
+        return $this->getGetParam($name, $this->_getDefaultParam($name));
     }
 
     /**
@@ -150,6 +153,35 @@ class Request
     public function getMethod()
     {
         return strtolower($this->getServer('REQUEST_METHOD'));
+    }
+
+    /**
+     * Get application config
+     *
+     * @return \Zend_Config
+     * @throws \Zend_Exception
+     */
+    protected function _getConfig()
+    {
+        return \Zend_Registry::get('config');
+    }
+
+    /**
+     * Get default param
+     *
+     * @param string $name
+     * @return string|null
+     */
+    protected function _getDefaultParam($name)
+    {
+        $request = $this->_getConfig()->request;
+        if ($request) {
+            $default = $request->default;
+            if ($request) {
+                return $default->$name;
+            }
+        }
+        return null;
     }
 }
 
