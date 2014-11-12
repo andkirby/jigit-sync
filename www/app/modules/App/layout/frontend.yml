@@ -1,0 +1,50 @@
+x_x_x:
+  root: #main block which will be called in controller to render blocks
+    _template: page #template file. An extension might be omitted if it's .phtml
+    _module: App    #module name. It must be set to load template from module
+    message:
+      _module: App  #module set because class name not in the module (see how to omit module name below)
+      _class: \Lib\Design\Message
+      _template: index/messages
+    header:
+      _module: App
+      _template: page/header
+    content:
+      _class: \App\Block\Container #Block class name.
+                                   #It might be omitted if block class name is Lib\Design\Renderer
+                                   #Also you can omit _module attribute because layout can determine module name by
+                                   #class of block
+    footer:
+      _module: App
+      _template: page/footer
+
+#app_index_x:
+#  new_block:
+#    template: some/template
+
+#app_index_index:
+  # This handle will merge handles "x_x_x" and "app_index_x".
+  # x_x_x - for all handles, app_index_x - only for module "app" and controller "index".
+  # You can also create "app_x_x" to merge for all requests of module "app"
+#  _reference: #make reference for block
+#    content:  #target block name
+#      sample_block: #block which should be added into "content" block
+#        _class: \App\Block\Index\Sample
+#        _template: index/index
+
+#mod_index_x: #this handle for module "mod" index controller and any action
+#  _remove:
+#    - header #block "header" will not created, ie removed
+
+#mod_index_jsonCategories: #this handle implies returning JSON data
+#  root: #make only single block
+#    _class: App\Block\Json  #this block will return json_data from block in JSON format
+
+#example_x_x:
+#  _reference:
+#    root:       #Reference to call some method
+#      _action:  #Attribute with methods list
+#        - setData:  #Method must be list item and started with "-"
+#          - my_name #Parameter should be list item
+#          - !!!Root!!!
+

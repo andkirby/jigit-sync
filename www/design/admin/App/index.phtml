@@ -1,0 +1,22 @@
+<?php
+/** @var $this Lib\Design\Renderer */
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Bakery</title>
+    <link href="http://yui.yahooapis.com/3.5.0/build/cssreset/cssreset-min.css" media="screen" rel="stylesheet" type="text/css">
+    <link href="http://yui.yahooapis.com/3.5.0/build/cssbase/cssbase-min.css" media="screen" rel="stylesheet" type="text/css">
+    <link href="http://yui.yahooapis.com/3.5.0/build/cssfonts/cssfonts-min.css" media="screen" rel="stylesheet" type="text/css">
+<!--    <script type="text/javascript" src="/skin/js/jquery-1.11.1.js"></script>-->
+</head>
+<body>
+<div class="container container_12">
+    <div class="header">&nbps;</div>
+    <a class="grid_12" href="/">JiGIT Sync - JIRA &amp; GIT Synchronization Tool</a>
+    <?php echo $this->getChildHtml('message'); ?>
+    <div class="content"><?php echo $this->getData('content'); ?></div>
+</div>
+</body>
+</html>

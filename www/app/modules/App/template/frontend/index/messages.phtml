@@ -1,0 +1,23 @@
+<?php
+/** @var $this \Lib\Design\Message */
+$messages = $this->getMessages();
+if ($messages) :
+?>
+<div class="alert-block grid_12">
+    <?php
+
+    while (current($messages)) :
+        $item = current($messages);
+        $message = $item['message'];
+        $type = $item['type'];
+        ?>
+        <div class="alert alert-<?php echo $type ?>">
+            <?php echo $message; ?>
+        </div>
+        <?php
+        next($messages);
+    endwhile;
+    $this->cleanUpMessages();
+    ?>
+</div>
+<?php endif; ?>

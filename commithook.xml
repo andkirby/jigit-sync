@@ -7,8 +7,26 @@
                 <skip>
                     <files>
                         <file>app/Jigit/Jira/_password.php</file>
+                        <file>www/skin/js/jquery-1.11.1.js</file>
+                        <file>index.php</file>
+                        <file>www/index.php</file>
                     </files>
+                    <paths>
+                        <path>libs/Zend</path>
+                        <path>libs/Symfony</path>
+                    </paths>
                 </skip>
+                <protect>
+                    <files>
+                        <file>index.php</file>
+                        <file>www/index.php</file>
+                    </files>
+                    <paths>
+                        <path>libs/Zend</path>
+                        <path>libs/Symfony</path>
+                        <path>libs/JiraRestApi</path>
+                    </paths>
+                </protect>
             </filter>
         </FileFilter>
     </validators>

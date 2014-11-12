@@ -1,0 +1,48 @@
+x_x_x:
+  root:
+    _class: \App\Block\Admin\Page
+    _template: page
+    head:
+      _class: \App\Block\Admin\Page
+      _template: page/head
+    message:
+      _module: App
+      _class: \Lib\Design\Message
+      _template: index/messages
+    header:
+      _class: \App\Block\Admin\Page\Header
+      _template: page/header
+      admin_menu:
+        _template: page/header/admin-menu
+        _class: \App\Block\Admin\Page\Header\AdminMenu
+    menu:
+      _class: \App\Block\Admin\Link\LinkList
+      _template: page/menu
+      link_item:
+        _class: \App\Block\Admin\Link\Item
+        _template: page/menu/item
+    content:
+      _class: \App\Block\Admin\Page\Content
+      _template: page/content
+    footer:
+      _module: App
+      _template: page/footer
+  #Example how to add a menu item
+  _reference:
+    menu:
+      _action:
+        - addLink:
+            name: dashboard
+            title: Dashboard
+            path: app/
+#            params:
+#              aa: a
+#              bb: bb
+            position: -100
+
+app_index_index:
+  _reference:
+    content:
+      dashboard:
+        _template: page/content/dashboard
+        _class: \App\Block\Admin\Page\Content\Dashboard

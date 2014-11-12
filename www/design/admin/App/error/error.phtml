@@ -1,0 +1,8 @@
+<?php
+/** @var $this \Lib\Design\Renderer */
+
+/** @var \Exception $exception */
+$exception = $this->getData('exception');
+?>
+<strong><?php echo $exception->getMessage(); ?></strong>
+<pre><?php echo $exception->getTraceAsString(); ?></pre>
