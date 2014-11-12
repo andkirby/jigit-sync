@@ -25,6 +25,7 @@
                         <path>libs/Zend</path>
                         <path>libs/Symfony</path>
                         <path>libs/JiraRestApi</path>
+                        <path>www/skin/js/webix</path>
                     </paths>
                 </protect>
             </filter>
