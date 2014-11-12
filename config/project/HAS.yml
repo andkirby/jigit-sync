@@ -4,7 +4,9 @@ project:
     vcs:
       version:
         alias:
-          develop: v.develop
+          v.develop:
+            branch_top: develop
+            branch_low: master
     jira:
       jql:
         alias:
