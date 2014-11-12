@@ -16,6 +16,11 @@ set_include_path(
 
 require_once __DIR__ . '/../libs/Lib/Autoloader.php';
 \Lib\Autoloader::register();
+/**
+ * Add namespace because not directory "chobie"
+ */
+\Lib\Autoloader::addNamespace('chobie', 'JiraRestApi/src');
+
 set_error_handler('\Lib\ErrorHandler::handleError');
 
 $app = new \Lib\Dispatcher();

@@ -11,7 +11,6 @@ $includePaths = array(
     get_include_path(),
     realpath(APP_ROOT . '/'),
     realpath(APP_ROOT . '/libs/'),
-    realpath(APP_ROOT . '/../jira-api-restclient/src'),
     realpath(APP_ROOT . '/app/'),
 );
 set_include_path(implode(PATH_SEPARATOR, $includePaths));
@@ -25,7 +24,7 @@ require_once APP_ROOT . '/libs/Lib/Autoloader.php';
 /**
  * Add namespace because not directory "chobie"
  */
-\Lib\Autoloader::addNamespace('chobie/Jira', 'Jira');
+\Lib\Autoloader::addNamespace('chobie/Jira', 'JiraRestApi/src/Jira');
 
 /**
  * Initialize ErrorHandler
