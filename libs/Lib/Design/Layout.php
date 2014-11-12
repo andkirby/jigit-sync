@@ -475,8 +475,6 @@ class Layout
         }
 
         $data = $this->_getBlockData($config);
-        var_dump($blockClass);
-        var_dump($data);
 
         /** @var Renderer $block */
         $block = new $blockClass($data);
