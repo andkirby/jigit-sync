@@ -6,6 +6,23 @@ x_x_x:
       _module: App  #module set because class name not in the module (see how to omit module name below)
       _class: \Lib\Design\Message
       _template: index/messages
+    head:
+      _module: App
+      _class: \App\Block\Page\Head
+      _template: page/head
+      _action:
+        - addLink:
+          - css
+          - http://yui.yahooapis.com/3.5.0/build/cssreset/cssreset-min.css
+        - addLink:
+          - css
+          - http://yui.yahooapis.com/3.5.0/build/cssbase/cssbase-min.css
+        - addLink:
+          - css
+          - http://yui.yahooapis.com/3.5.0/build/cssfonts/cssfonts-min.css
+        - addLink:
+          - css
+          - skin/css/styles.ddcss
     header:
       _module: App
       _template: page/header

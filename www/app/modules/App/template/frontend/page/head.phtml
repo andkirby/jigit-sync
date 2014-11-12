@@ -1,0 +1,21 @@
+<?php /** @var $this App\Block\Page\Head */ ?>
+<meta charset="UTF-8"/>
+<title><?php echo $this->getData('title'); ?></title>
+<?php
+$html = '';
+foreach ($this->getLinks('link') as $attributes) :
+      $html .= '<link ';
+      foreach ($attributes as $name => $value) :
+            $html .= "$name=\"$value\" ";
+      endforeach;
+      $html .= '/>' . PHP_EOL;
+endforeach;
+foreach ($this->getLinks('script') as $attributes) :
+      $html .= '<script ';
+      foreach ($attributes as $name => $value) :
+            $html .= "$name=\"$value\" ";
+      endforeach;
+      $html .= '>' . '</script>' . PHP_EOL;
+endforeach;
+
+echo $html;
