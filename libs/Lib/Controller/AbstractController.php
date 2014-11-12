@@ -2,9 +2,9 @@
 namespace Lib\Controller;
 
 use Lib\Design\Layout;
-use Lib\Exception;
-use Lib\Design\Renderer;
 use Lib\Design\Message;
+use Lib\Design\Renderer;
+use Lib\Exception;
 use Lib\Request;
 use Lib\Session;
 use Lib\Url;

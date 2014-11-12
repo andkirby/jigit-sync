@@ -1,8 +1,8 @@
 <?php
 namespace Lib\Db;
 
-use Lib\Model\Data\DataAbstract;
 use Lib\Exception;
+use Lib\Model\Data\DataAbstract;
 use Lib\Model\Data\Object;
 
 /**

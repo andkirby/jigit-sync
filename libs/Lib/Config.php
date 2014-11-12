@@ -167,7 +167,7 @@ class Config
      * Get config main file
      *
      * @param string $baseDir
-     * @param        $filename
+     * @param string $filename
      * @return string
      */
     protected function _getEtcConfigFile($baseDir, $filename)

@@ -178,7 +178,7 @@ class Layout
     /**
      * Get module dir
      *
-     * @param $moduleName
+     * @param string $moduleName
      * @return string
      */
     protected function _getModuleDir($moduleName)

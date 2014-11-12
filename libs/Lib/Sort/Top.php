@@ -243,10 +243,14 @@ class Top
     }
 
     /**
-     * @param $node
+     * Add node into sort list
+     *
+     * @param string $node
+     * @return $this
      */
     protected function _addNodeToSortList($node)
     {
         $this->_sortedNodes[] = $node;
+        return $this;
     }
 }

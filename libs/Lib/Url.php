@@ -175,6 +175,8 @@ class Url
 
     /**
      * Get module key
+     *
+     * @return string
      */
     public function getModuleKey()
     {
@@ -183,6 +185,8 @@ class Url
 
     /**
      * Get controller key
+     *
+     * @return string
      */
     public function getControllerKey()
     {
@@ -191,6 +195,8 @@ class Url
 
     /**
      * Get action key
+     *
+     * @return string
      */
     public function getActionKey()
     {
@@ -244,6 +250,8 @@ class Url
     }
 
     /**
+     * Get URL protocol
+     *
      * @return string
      */
     protected function _getProtocol()

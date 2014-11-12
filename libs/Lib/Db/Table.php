@@ -2,7 +2,6 @@
 namespace Lib\Db;
 use Lib\Db;
 use Lib\Exception;
-use Zend_Paginator;
 
 /**
  * Class Table
@@ -15,13 +14,13 @@ class Table extends \Zend_Db_Table_Abstract
     /**
      * Select object
      *
-     * @var
+     * @var \Zend_Db_Select
      */
     protected $_select;
     /**
      * Collection
      *
-     * @var
+     * @var \Zend_Paginator
      */
     protected $_collection;
 
@@ -85,11 +84,11 @@ class Table extends \Zend_Db_Table_Abstract
      * Return Paginator collection
      *
      * @param \Zend_Db_Select $select
-     * @return Zend_Paginator
+     * @return \Zend_Paginator
      */
     protected function _getPaginator(\Zend_Db_Select $select)
     {
-        return  Zend_Paginator::factory($select);
+        return  \Zend_Paginator::factory($select);
     }
 
     /**

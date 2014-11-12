@@ -1,8 +1,8 @@
 <?php
 namespace Lib\Model;
 
-use Lib\Model\Data\Resource;
 use Lib\Model\Data\DataAbstract;
+use Lib\Model\Data\Resource;
 use Lib\Record;
 
 /**

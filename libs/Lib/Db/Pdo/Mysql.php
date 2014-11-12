@@ -78,7 +78,7 @@ class Mysql extends \Zend_Db_Adapter_Pdo_Mysql
     /**
      * Truncate table
      *
-     * @param $tableName
+     * @param string $tableName
      * @throws \Zend_Db_Statement_Exception
      * @return $this
      */

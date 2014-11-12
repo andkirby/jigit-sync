@@ -130,7 +130,7 @@ class Pager extends Renderer
     /**
      * Set total page count
      *
-     * @param $totalPageCount
+     * @param int $totalPageCount
      * @internal param mixed $totalPageCaunt
      */
     protected function _setTotalPageCount($totalPageCount)
