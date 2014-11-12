@@ -1,0 +1,7 @@
+jigit_x_x:
+  _reference:
+    root:
+      _action:
+        - setData:
+          - title
+          - JiGIT Sync Tool
