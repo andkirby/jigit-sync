@@ -5,14 +5,13 @@
 <html>
 <head>
     <meta charset="UTF-8" />
-    <title>Bakery</title>
+    <title><?php echo $this->getData('title'); ?></title>
     <link href="http://yui.yahooapis.com/3.5.0/build/cssreset/cssreset-min.css" media="screen" rel="stylesheet"
           type="text/css">
     <link href="http://yui.yahooapis.com/3.5.0/build/cssbase/cssbase-min.css" media="screen" rel="stylesheet"
           type="text/css">
     <link href="http://yui.yahooapis.com/3.5.0/build/cssfonts/cssfonts-min.css" media="screen" rel="stylesheet"
           type="text/css">
-    <link href="/skin/css/960.css" media="screen" rel="stylesheet" type="text/css">
     <link href="<?php echo $this->getLinkUrl('skin/css/styles.css'); ?>"
           media="screen" rel="stylesheet" type="text/css">
 </head>
