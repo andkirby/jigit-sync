@@ -248,6 +248,16 @@ class Layout
     }
 
     /**
+     * Get blocks config
+     *
+     * @return \Zend_Config
+     */
+    public function getConfigBlocks()
+    {
+        return $this->_blocksConfig;
+    }
+
+    /**
      * Get base layout config
      *
      * @return \Zend_Config
@@ -310,11 +320,11 @@ class Layout
             if ($this->_isBlockRemoved($name)) {
                 continue;
             }
+            $this->_mergeReference($name, $nodeConfig);
             $block = $this->createBlock($nodeConfig->_class, $name, $nodeConfig);
             if ($parentBlock) {
                 $parentBlock->setChild($name, $block);
             }
-            $this->_mergeReference($name, $nodeConfig);
             $this->_callBlockMethod($block, $nodeConfig);
 
             $this->_performBlockConfig($nodeConfig, $block);
@@ -323,7 +333,7 @@ class Layout
     }
 
     /**
-     * Merge reference instructions
+     * Call methods from layout
      *
      * @param Renderer     $block
      * @param \Zend_Config $nodeConfig
@@ -460,11 +470,13 @@ class Layout
      */
     protected function _getBlockInstance($config, $blockClass = null)
     {
-        $data = $this->_getBlockData($config);
-
         if (!$blockClass) {
             $blockClass = $this->_getBlockClass($config);
         }
+
+        $data = $this->_getBlockData($config);
+        var_dump($blockClass);
+        var_dump($data);
 
         /** @var Renderer $block */
         $block = new $blockClass($data);
