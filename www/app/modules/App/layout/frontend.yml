@@ -23,11 +23,14 @@ x_x_x:
         - addLink:
           - css
           - skin/css/styles.css
-    header:
+    body:
       _module: App
-      _template: page/header
-    content:
-      _class: \App\Block\Container #Block class name.
+      _template: page/body
+      header:
+        _module: App
+        _template: page/header
+      content:
+        _class: \App\Block\Container #Block class name.
                                    #It might be omitted if block class name is Lib\Design\Renderer
                                    #Also you can omit _module attribute because layout can determine module name by
                                    #class of block

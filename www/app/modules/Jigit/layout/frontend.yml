@@ -5,6 +5,9 @@ jigit_x_x:
         - setData:
           - title
           - JiGIT Sync Tool
-        - removeLink:
-          - title
-          - JiGIT Sync Tool
+        - addLink:
+          - css
+          - skin/js/webix/codebase/webix.css
+        - addLink:
+          - js
+          - skin/js/webix/codebase/webix.js
