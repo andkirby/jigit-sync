@@ -78,4 +78,17 @@ class Head extends Renderer
     {
         return isset($this->_links[$type]) ? $this->_links[$type] : array();
     }
+
+    /**
+     * Remove link
+     *
+     * @param string $type
+     * @param string $uri
+     * @return $this
+     */
+    public function removeLink($type, $uri)
+    {
+        unset($this->_links[$type][$uri]);
+        return $this;
+    }
 }
