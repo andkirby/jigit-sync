@@ -321,6 +321,10 @@ class Layout
                 continue;
             }
             $this->_mergeReference($name, $nodeConfig);
+
+            if (!$this->_isBlockCanLoaded($nodeConfig)) {
+                continue;
+            }
             $block = $this->createBlock($nodeConfig->_class, $name, $nodeConfig);
             if ($parentBlock) {
                 $parentBlock->setChild($name, $block);
@@ -381,6 +385,27 @@ class Layout
     protected function _isBlockRemoved($name)
     {
         return $this->_blocksConfig->_remove && in_array($name, $this->_blocksConfig->_remove->toArray());
+    }
+
+    /**
+     * Check block can be loaded
+     *
+     * @param Node $blockConfig
+     * @return bool
+     */
+    protected function _isBlockCanLoaded($blockConfig)
+    {
+        $ifList = $blockConfig->_if;
+        if ($ifList && $ifList instanceof Node) {
+            foreach ($ifList as $condition) {
+                list($class, $method) = explode('::', $condition);
+                $object = new $class;
+                if (!$object->$method()) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
