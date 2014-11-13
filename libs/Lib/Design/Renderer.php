@@ -379,7 +379,7 @@ class Renderer extends Data\Object
      */
     protected function _isQuietRender()
     {
-        return true;
+        return !$this->_getConfig()->app->debug;
     }
 
     /**
