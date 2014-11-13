@@ -10,30 +10,39 @@
     webix.ui({
         container: "layout_div",
         id: "layout",
-        height: 600,
-        width: 700,
+        height: 400,
         rows: [
-            {template: "header 1", minHeight: 30, height: 30},
+            {
+                template: "Some test layout in Jigit/template/frontend/page/body.phtml",
+                minHeight: 30,
+                height: 30
+            },
             {
                 cols: [
                     {
-                        id: "a1",
-                        template: "column 1",
-                        width: 150,
-                        minWidth: 150,
-                        maxWidth: 250
+                        id: "layout_left",
+                        template: "<div id='layout_left'></div>",
+                        width: 250
                     },
                     {
-                        view: "resizer",
-                        id: "resizer"
-                    },
-                    {
-                        template: "column 2"
-
+                        id: "layout_content",
+                        template: "<div id='layout_content'></div>"
                     }
                 ]
             }
         ]
     }).show();
 
+    webix.ui({
+        container: "layout_left",
+        view:"form",
+        id:"log_form",
+        width:200,
+        elements:[
+            { view:"text", label:"Email"},
+            { view:"text", type:"password", label:"Password"},
+            { view:"button", value:"Login" , type:"form" },
+            { view:"button", value:"Cancel" }
+        ]
+    });
 </script>
