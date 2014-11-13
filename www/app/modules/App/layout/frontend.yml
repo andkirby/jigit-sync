@@ -34,9 +34,9 @@ x_x_x:
                                    #It might be omitted if block class name is Lib\Design\Renderer
                                    #Also you can omit _module attribute because layout can determine module name by
                                    #class of block
-    footer:
-      _module: App
-      _template: page/footer
+      footer:
+        _module: App
+        _template: page/footer
 
 #app_index_x:
 #  new_block:

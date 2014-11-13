@@ -11,3 +11,5 @@ jigit_x_x:
         - addLink:
           - js
           - skin/js/webix/codebase/webix.js
+    body:
+      _module: Jigit

@@ -1,0 +1,39 @@
+<div class="container container_12">
+    <?php echo $this->getChildHtml('header'); ?>
+    <?php echo $this->getChildHtml('message'); ?>
+    <div class="content">
+        <div id='layout_div' style=''></div>
+    </div>
+</div>
+
+<script type="text/javascript" charset="utf-8">
+    webix.ui({
+        container: "layout_div",
+        id: "layout",
+        height: 600,
+        width: 700,
+        rows: [
+            {template: "header 1", minHeight: 30, height: 30},
+            {
+                cols: [
+                    {
+                        id: "a1",
+                        template: "column 1",
+                        width: 150,
+                        minWidth: 150,
+                        maxWidth: 250
+                    },
+                    {
+                        view: "resizer",
+                        id: "resizer"
+                    },
+                    {
+                        template: "column 2"
+
+                    }
+                ]
+            }
+        ]
+    }).show();
+
+</script>
