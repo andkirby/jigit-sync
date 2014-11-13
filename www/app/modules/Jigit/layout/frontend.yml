@@ -13,3 +13,6 @@ jigit_x_x:
           - skin/js/webix/codebase/webix.js
     body:
       _module: Jigit
+      form:
+        _module: Jigit
+        _template: page/form

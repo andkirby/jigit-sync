@@ -8,41 +8,32 @@
 
 <script type="text/javascript" charset="utf-8">
     webix.ui({
-        container: "layout_div",
-        id: "layout",
+        container: 'layout_div',
+        id: 'layout',
         height: 400,
         rows: [
             {
-                template: "Some test layout in Jigit/template/frontend/page/body.phtml",
-                minHeight: 30,
+                template: 'Some test layout in Jigit/template/frontend/page/body.phtml',
                 height: 30
             },
             {
                 cols: [
                     {
-                        id: "layout_left",
-                        template: "<div id='layout_left'></div>",
-                        width: 250
+                        id: 'left',
+                        view:'layout',
+                        width: 250,
+                        cols: [{}]
                     },
                     {
-                        id: "layout_content",
-                        template: "<div id='layout_content'></div>"
+                        id: 'content',
+                        template: '<div id="layout_content">content</div>'
                     }
                 ]
             }
         ]
-    }).show();
-
-    webix.ui({
-        container: "layout_left",
-        view:"form",
-        id:"log_form",
-        width:200,
-        elements:[
-            { view:"text", label:"Email"},
-            { view:"text", type:"password", label:"Password"},
-            { view:"button", value:"Login" , type:"form" },
-            { view:"button", value:"Cancel" }
-        ]
     });
+</script>
+<?php echo $this->getChildHtml('form'); ?>
+<script type="text/javascript">
+    $$('layout').render()
 </script>
