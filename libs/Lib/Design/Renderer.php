@@ -124,11 +124,21 @@ class Renderer extends Data\Object
                 throw new Exception(sprintf('File %s not found.', $this->_template));
             }
         }
+        return $this->_catchOutput();
+    }
+
+    /**
+     * Catch output
+     *
+     * @return string
+     */
+    protected function _catchOutput()
+    {
         ob_start();
         $this->_loadTemplate();
-        $html = ob_get_contents();
+        $output = ob_get_contents();
         ob_end_clean();
-        return $html;
+        return $output;
     }
 
     /**
