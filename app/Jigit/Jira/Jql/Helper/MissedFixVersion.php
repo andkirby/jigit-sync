@@ -165,8 +165,9 @@ class MissedFixVersion extends DefaultHelper
     {
         $tags   = $this->getVcs()->getTags();
         //add default branches to identify tasks there
-        $tags[] = 'master';
-        $tags[] = 'develop';
+        $gitFlow = Config::getInstance()->getData('app/vcs/git_flow');
+        $tags[] = $gitFlow->master;
+        $tags[] = $gitFlow->develop;
         return $tags;
     }
 
