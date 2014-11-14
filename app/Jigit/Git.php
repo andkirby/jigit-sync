@@ -119,6 +119,23 @@ class Git implements InterfaceVcs
     }
 
     /**
+     * Get branches list
+     *
+     * @param bool $withRemote
+     * @return array
+     */
+    public function getBranches($withRemote = true)
+    {
+        if ($withRemote) {
+            $result   = trim($this->runInProjectDir('branch -a'));
+            $result   = str_replace('remotes/', '', $result);
+        } else {
+            $result   = trim($this->runInProjectDir('branch'));
+        }
+        return explode("\n", $result);
+    }
+
+    /**
      * Sort tags
      *
      * @param bool $reverse

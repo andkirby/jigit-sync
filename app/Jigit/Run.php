@@ -109,9 +109,8 @@ class Run implements Dispatcher\InterfaceDispatcher
         $this->_checkRequestedHelp($params);
         $this->_setProject(@$params['p']);
         $this->_setAction($action);
-        $this->_initConfig();
+        $this->initConfig();
         Config::getInstance()->setData('output', $this->_output);
-        $this->_mergeProjectConfig();
         $this->_setParams($params);
         $this->_setHeaderOutput();
         return $this;
@@ -219,35 +218,59 @@ class Run implements Dispatcher\InterfaceDispatcher
     /**
      * Init config
      *
-     * @todo Need to make refactoring
      * @throws Exception
      * @throws UserException
      * @return $this
      */
-    protected function _initConfig()
+    public function initConfig()
     {
-        $files = array(APP_ROOT . '/config/app.yml');
-        Config::loadConfig($files);
-        $config = Config::getInstance();
+        Config::loadConfig(array(APP_ROOT . '/config/app.yml'));
 
         /**
          * Load extra files
          */
-        $configDir = APP_ROOT . DIRECTORY_SEPARATOR
-            . $config->getData('app/config_files/base_dir');
-
-        //project config files directory
-        $projectDir = $configDir . DIRECTORY_SEPARATOR
-            . $config->getData('app/config_files/project_dir');
-
-        //get project config files
         $files = array(
-            $configDir . DIRECTORY_SEPARATOR . $config->getData('app/config_files/local'),
-            $projectDir . DIRECTORY_SEPARATOR . $this->_project . '.yml',
+            $this->_getConfigDir() . DIRECTORY_SEPARATOR
+                . Config::getInstance()->getData('app/config_files/local'),
         );
         Config::loadConfig($files);
-        Config\Project::setJiraProject($this->_project);
+        if ($this->_project) {
+            //get project config files
+            $this->_loadProjectConfig();
+        }
         return $this;
+    }
+
+    /**
+     * Load project config
+     *
+     * @throws Exception
+     */
+    protected function _loadProjectConfig()
+    {
+        Config\Project::setJiraProject($this->_project);
+
+        //project config files directory
+        $projectDir = $this->_getConfigDir() . DIRECTORY_SEPARATOR
+            . Config::getInstance()->getData('app/config_files/project_dir');
+        $files      = array(
+            $projectDir . DIRECTORY_SEPARATOR . $this->_project . '.yml'
+        );
+        Config::loadConfig($files);
+
+        $this->_mergeProjectConfig();
+        return $this;
+    }
+
+    /**
+     * Get config directory
+     *
+     * @return string
+     */
+    protected function _getConfigDir()
+    {
+        return APP_ROOT . DIRECTORY_SEPARATOR
+        . Config::getInstance()->getData('app/config_files/base_dir');
     }
 
     /**
@@ -486,9 +509,9 @@ class Run implements Dispatcher\InterfaceDispatcher
             $branchTop = $matches[2];
             if (!$branchLow) {
                 if (false !== strpos($branchTop, 'hotfix')) {
-                    $branchLow = 'master';
+                    $branchLow = Config::getInstance()->getData('app/vcs/git_flow/master');
                 } elseif (false !== strpos($branchTop, 'release')) {
-                    $branchLow = 'master';
+                    $branchLow = Config::getInstance()->getData('app/vcs/git_flow/master');
                 } else {
                     throw new UserException("Could not find low branch for branch '$branchTop'. You may set it.");
                 }
