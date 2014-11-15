@@ -41,6 +41,18 @@ class Renderer extends Data\Object
     protected $_layout;
 
     /**
+     * System keys
+     *
+     * @var array
+     */
+    protected $_systemKeys = array(
+        '_module',
+        '_class',
+        '_if',
+        '_template',
+    );
+
+    /**
      * Constructor. Set data
      *
      * @param array $data
@@ -400,5 +412,23 @@ class Renderer extends Data\Object
     public function getRequest()
     {
         return Request::getInstance();
+    }
+
+    /**
+     * Get data
+     *
+     * @param string null $key
+     * @throws Exception
+     * @return array|string
+     */
+    public function getData($key = null)
+    {
+        $data = parent::getData($key);
+        if (null === $key) {
+            foreach ($this->_systemKeys as $key) {
+                unset($data[$key]);
+            }
+        }
+        return $data;
     }
 }
