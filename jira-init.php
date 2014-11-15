@@ -2,23 +2,23 @@
 /**
  * Define app root
  */
-!defined('APP_ROOT') && define('APP_ROOT', __DIR__);
+!defined('JIGIT_ROOT') && define('JIGIT_ROOT', __DIR__);
 
 /**
  * Define include paths
  */
 $includePaths = array(
     get_include_path(),
-    realpath(APP_ROOT . '/'),
-    realpath(APP_ROOT . '/libs/'),
-    realpath(APP_ROOT . '/app/'),
+    realpath(JIGIT_ROOT . '/'),
+    realpath(JIGIT_ROOT . '/libs/'),
+    realpath(JIGIT_ROOT . '/app/'),
 );
 set_include_path(implode(PATH_SEPARATOR, $includePaths));
 
 /**
  * Initialize autoloader
  */
-require_once APP_ROOT . '/libs/Lib/Autoloader.php';
+require_once JIGIT_ROOT . '/libs/Lib/Autoloader.php';
 \Lib\Autoloader::register();
 
 /**

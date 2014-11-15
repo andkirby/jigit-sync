@@ -27,7 +27,7 @@ class Jira extends Config
     {
         $password = new Password(
             self::getInstance()->getData('app/jira/password_file')
-            ?: APP_ROOT . DIRECTORY_SEPARATOR . self::_getConfigDir()
+            ?: JIGIT_ROOT . DIRECTORY_SEPARATOR . self::_getConfigDir()
             . DIRECTORY_SEPARATOR . 'jira.password'
         );
         return $password->getPassword();
