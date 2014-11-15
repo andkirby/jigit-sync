@@ -12,12 +12,12 @@ class IndexController extends Controller\AbstractController
      */
     public function init()
     {
+        //TODO Refactor this set
+        !defined('JIGIT_ROOT') && define('JIGIT_ROOT', realpath(APP_ROOT . '/..'));
+
         $run = new Run();
         $run->initConfig();
         \Zend_Registry::set('vcs', new Git());
-
-        //TODO Refactor this set
-        !defined('JIGIT_ROOT') && define('JIGIT_ROOT', realpath(APP_ROOT . '/..'));
     }
 
     /**
