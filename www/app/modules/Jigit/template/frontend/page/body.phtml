@@ -1,40 +1,14 @@
-<?php /** @var $this \Lib\Design\Renderer */ ?>
+<?php /** @var $this \Jigit\Block\Main */ ?>
 <div class="container container_12">
     <?php echo $this->getChildHtml('header'); ?>
     <?php echo $this->getChildHtml('message'); ?>
-    <div class="content">
-        <div id='layout_div' style=''></div>
-    </div>
+    <?php echo $this->getChildHtml('panel'); ?>
+    <div id="main_layout"></div>
 </div>
-
 <script type="text/javascript" charset="utf-8">
-    webix.ui({
-        container: 'layout_div',
-        id: 'layout',
-        height: 400,
-        rows: [
-            {
-                template: 'Some test layout in Jigit/template/frontend/page/body.phtml',
-                height: 30
-            },
-            {
-                cols: [
-                    {
-                        id: 'left',
-                        view:'layout',
-                        width: 250,
-                        cols: [{}]
-                    },
-                    {
-                        id: 'content',
-                        template: '<div id="layout_content">content</div>'
-                    }
-                ]
-            }
-        ]
-    });
-</script>
-<?php echo $this->getChildHtml('form'); ?>
-<script type="text/javascript">
-    $$('layout').render()
+    (function () {
+        var layout = <?php echo json_encode($this->loadConfig()); ?>;
+        layout.container = 'main_layout';
+        webix.ui(layout);
+    }());
 </script>
