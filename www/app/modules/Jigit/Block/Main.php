@@ -22,7 +22,7 @@ class Main extends Layout
             'id'     => 'main',
             'height' => 400,
         );
-        $this->setData($config);
+        $this->addData($config);
         parent::prepareConfig();
         return $this;
     }
