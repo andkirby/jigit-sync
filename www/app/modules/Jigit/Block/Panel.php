@@ -65,9 +65,10 @@ class Panel extends FormAbstract
             )
         );
         $this->_addElement(
-            'submit', 'button', array(
+            'button_submit', 'button', array(
                 'value' => 'Send',
-                'type' => 'form'
+                'type' => 'form',
+                'action' => '/test',
             )
         );
         return $this;

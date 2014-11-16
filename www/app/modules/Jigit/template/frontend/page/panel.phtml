@@ -5,17 +5,10 @@ $this->setData('padding', 5);
 ?>
 <script type="text/javascript">
     webix.ready(function () {
-//        var form = $$('jigit_panel');
-//        console.log(form);
+        var form = $$('jigit_panel');
+        form.elements.button_submit.attachEvent('onItemClick', function () {
+            webix.send('<?php echo $this->getUrl('*/*/post');?>', form.getValues(), 'get');
+        });
     });
-
-    (function () {
-//        if(form.isDirty()){
-//            if(!form.validate())
-//                return false;
-//            form.save();
-//        }
-
-//        webix.ajax('<?php echo $this->getUrl('*/*/post') ?>//', form.getValues());
-    }());
+//    webix.ajax('<?php //echo $this->getUrl('*/*/post') ?>//', form.getValues());
 </script>
