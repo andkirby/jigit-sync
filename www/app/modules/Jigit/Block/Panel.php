@@ -4,6 +4,7 @@ namespace Jigit\Block;
 use Jigit\Block\Webix\Widget\Container\FormAbstract;
 use Jigit\Config;
 use Jigit\Git;
+use Jigit\Helper\Base;
 use Lib\Design\Renderer;
 
 /**
@@ -13,6 +14,13 @@ use Lib\Design\Renderer;
  */
 class Panel extends FormAbstract
 {
+    /**
+     * Helper
+     *
+     * @var Base
+     */
+    protected $_helper;
+
     /**
      * Prepare elements
      *
@@ -58,7 +66,8 @@ class Panel extends FormAbstract
         );
         $this->_addElement(
             'submit', 'button', array(
-                'value' => 'Send', 'type' => 'form'
+                'value' => 'Send',
+                'type' => 'form'
             )
         );
         return $this;
@@ -71,12 +80,15 @@ class Panel extends FormAbstract
      */
     public function getProjects()
     {
-        return array(
-            array(
-                'id'    => 'HAS',
-                'value' => 'HAS',
-            )
-        );
+        $helper = $this->_getHelper();
+        $projects = array();
+        foreach ($helper->getProjects() as $project) {
+            $projects[] = array(
+                'id'    => $project,
+                'value' => $project,
+            );
+        }
+        return $projects;
     }
 
     /**
@@ -109,6 +121,16 @@ class Panel extends FormAbstract
     }
 
     /**
+     * Get form ID
+     *
+     * @return string
+     */
+    public function getId()
+    {
+        return 'jigit_panel';
+    }
+
+    /**
      * Get VCS
      *
      * @return Git
@@ -137,5 +159,18 @@ class Panel extends FormAbstract
     public function getProjectVersions()
     {
         return array();
+    }
+
+    /**
+     * Get helper
+     *
+     * @return Base
+     */
+    protected function _getHelper()
+    {
+        if (null === $this->_helper) {
+            $this->_helper = new Base();
+        }
+        return $this->_helper;
     }
 }

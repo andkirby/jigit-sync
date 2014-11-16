@@ -10,7 +10,7 @@ jigit_x_x:
           - skin/js/webix/codebase/webix.css
         - addLink:
           - js
-          - skin/js/webix/codebase/webix.js
+          - skin/js/webix/codebase/webix_debug.js
     body:
       _module: Jigit
       _class: Jigit\Block\Main

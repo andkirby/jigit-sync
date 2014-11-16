@@ -36,7 +36,7 @@ class Base
     /**
      * Get available projects list
      *
-     * @return bool
+     * @return array
      */
     public function getProjects()
     {
@@ -45,10 +45,12 @@ class Base
         $handle      = opendir($projectsDir);
         if ($handle) {
             //@startSkipCommitHooks
-            while (false !== ($entry = readdir($handle))
-                && $entry != self::PROJECT_EXAMPLE
-            ) {
-                $projects[] = pathinfo($entry, PATHINFO_FILENAME);
+            while (false !== ($entry = readdir($handle))) {
+                $entry = pathinfo($entry, PATHINFO_FILENAME);
+                if (!$entry || $entry == self::PROJECT_EXAMPLE || $entry == '.') {
+                    continue;
+                }
+                $projects[] = $entry;
             }
             //@finishSkipCommitHooks
             closedir($handle);
