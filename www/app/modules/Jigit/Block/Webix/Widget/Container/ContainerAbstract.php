@@ -41,7 +41,7 @@ abstract class ContainerAbstract extends Webix\Widget implements Webix\WidgetInt
             }
         }
         if ($items) {
-            $this->addData($this->getGroupType(), $items);
+            $this->setData($this->getGroupType(), $items);
         }
         return $this;
     }

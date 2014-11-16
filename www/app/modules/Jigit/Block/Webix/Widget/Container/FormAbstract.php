@@ -53,7 +53,7 @@ abstract class FormAbstract extends Row
      */
     public function loadChildrenConfig()
     {
-        $this->addData($this->getGroupType(), $this->_getElements(true));
+        $this->setData($this->getGroupType(), $this->_getElements(true));
         return $this;
     }
 
