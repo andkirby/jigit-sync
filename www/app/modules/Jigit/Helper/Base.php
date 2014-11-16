@@ -8,7 +8,64 @@
 
 namespace Jigit\Helper;
 
+use Jigit\Config;
 
-class Base {
+/**
+ * Class Base
+ *
+ * @package Jigit\Helper
+ */
+class Base
+{
+    /**
+     * Reserved project name of example file
+     */
+    const PROJECT_EXAMPLE = 'EXAMPLE';
 
+    /**
+     * Check JIRA credentials and URL
+     *
+     * @return bool
+     */
+    public function isInstalled()
+    {
+        return Config\Jira::getJiraUrl() && Config\Jira::getPassword()
+        && Config\Jira::getUsername();
+    }
+
+    /**
+     * Get available projects list
+     *
+     * @return bool
+     */
+    public function getProjects()
+    {
+        $projects    = array();
+        $projectsDir = $this->_getProjectsDir();
+        $handle      = opendir($projectsDir);
+        if ($handle) {
+            //@startSkipCommitHooks
+            while (false !== ($entry = readdir($handle))
+                && $entry != self::PROJECT_EXAMPLE
+            ) {
+                $projects[] = pathinfo($entry, PATHINFO_FILENAME);
+            }
+            //@finishSkipCommitHooks
+            closedir($handle);
+        }
+        return $projects;
+    }
+
+    /**
+     * Get projects directory
+     *
+     * @return string
+     * @throws \Jigit\Exception
+     */
+    protected function _getProjectsDir()
+    {
+        return JIGIT_ROOT . DIRECTORY_SEPARATOR
+        . Config::getInstance()->getData('app/config_files/base_dir')
+        . DIRECTORY_SEPARATOR . Config::getInstance()->getData('app/config_files/project_dir');
+    }
 }
