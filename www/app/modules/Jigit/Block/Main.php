@@ -20,7 +20,6 @@ class Main extends Layout
         $config = array(
             'view'   => 'layout',
             'id'     => 'main',
-            'height' => 400,
         );
         $this->addData($config);
         parent::prepareConfig();
