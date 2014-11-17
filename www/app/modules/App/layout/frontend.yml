@@ -1,11 +1,11 @@
 x_x_x:
+  message:
+    _module: App  #module set because class name not in the module (see how to omit module name below)
+    _class: \Lib\Design\Message
+    _template: index/messages
   root: #main block which will be called in controller to render blocks
     _template: page #template file. An extension might be omitted if it's .phtml
     _module: App    #module name. It must be set to load template from module
-    message:
-      _module: App  #module set because class name not in the module (see how to omit module name below)
-      _class: \Lib\Design\Message
-      _template: index/messages
     head:
       _module: App
       _class: \App\Block\Page\Head
