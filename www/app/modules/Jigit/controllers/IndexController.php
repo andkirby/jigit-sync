@@ -22,14 +22,7 @@ class IndexController extends Controller\AbstractController
         //TODO Refactor this set
         !defined('JIGIT_ROOT') && define('JIGIT_ROOT', realpath(APP_ROOT . '/..'));
 
-        $run = $this->_getRunner();
-        if ($this->getRequest()->isPost()) {
-            $run->initConfig();
-        } else {
-            $run->initialize($this->getRequest()->getPostParam('action'), $this->getRequest()->getPost());
-        }
-        \Zend_Registry::set('vcs', $run->getVcs());
-        \Zend_Registry::set('runner', $run);
+        \Zend_Registry::set('runner', $this->_getRunner());
     }
 
     /**
@@ -37,6 +30,7 @@ class IndexController extends Controller\AbstractController
      */
     public function indexAction()
     {
+        $this->_getRunner()->initConfig();
         $this->_loadLayout();
         $this->_renderBlocks();
     }
@@ -46,8 +40,34 @@ class IndexController extends Controller\AbstractController
      */
     public function postAction()
     {
+        try {
+            $report = new Report();
+            \Zend_Registry::set('report', $report);
+            $this->_setProjectAlias();
+            $this->_getRunner()
+                ->initialize($this->getRequest()->getPostParam('action'), $this->getRequest()->getPost());
+            $this->_getRunner()
+                ->getVcs()->validate();
+            $this->_processAction($report);
+        } catch (UserException $e) {
+            $this->_getSession()->addError($e->getMessage());
+        } catch (\Exception $e) {
+            $this->_getSession()->addError('An error occurred on request.');
+        }
         $this->_loadLayout();
         $this->_renderBlocks();
+    }
+
+    /**
+     * Process action
+     *
+     * @param Report $report
+     * @throws Exception
+     * @return Report
+     */
+    protected function _processAction($report)
+    {
+        return $this->_getRunner()->processAction($report);
     }
 
     /**
@@ -61,5 +81,16 @@ class IndexController extends Controller\AbstractController
             $this->_runner = new Run();
         }
         return $this->_runner;
+    }
+
+    /**
+     * Set project alias
+     *
+     * @return $this
+     */
+    protected function _setProjectAlias()
+    {
+        $this->getRequest()->setPostParam('p', $this->getRequest()->getPostParam('project'));
+        return $this;
     }
 }

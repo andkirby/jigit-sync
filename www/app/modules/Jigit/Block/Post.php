@@ -21,7 +21,7 @@ class Post extends Json
     protected function _getDataToJson()
     {
         $output = array();
-        $report = $this->_processAction();
+        $report = $this->_getReport();
 
         //TODO refactor getting such keys
         $output['vcs_issues'] = $this->_getVscIssues();
@@ -53,15 +53,14 @@ class Post extends Json
     }
 
     /**
-     * Process action
+     * Get report
      *
      * @return Report
      * @throws \Jigit\Exception
      */
-    protected function _processAction()
+    protected function _getReport()
     {
-        $report = new Report();
-        return $this->_getRunner()->processAction($report);
+        return \Zend_Registry::get('report');
     }
 
     /**
