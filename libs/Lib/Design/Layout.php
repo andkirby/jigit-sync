@@ -509,6 +509,7 @@ class Layout
         }
 
         $this->_setBlockTemplate($config, $block);
+        $block->setLayout($this);
 
         return $block;
     }
