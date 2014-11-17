@@ -53,6 +53,36 @@ class Request
     }
 
     /**
+     * Set POST parameter
+     *
+     * @param string $name
+     * @param mixed $value
+     * @return $this
+     */
+    public function setPostParam($name, $value)
+    {
+        //@startSkipCommitHooks
+        $_POST[$name] = $value;
+        //@finishSkipCommitHooks
+        return $this;
+    }
+
+    /**
+     * Set GET parameter
+     *
+     * @param string $name
+     * @param mixed $value
+     * @return $this
+     */
+    public function setGetParam($name, $value)
+    {
+        //@startSkipCommitHooks
+        $_GET[$name] = $value;
+        //@finishSkipCommitHooks
+        return $this;
+    }
+
+    /**
      * Get post parameters
      *
      * @return array
