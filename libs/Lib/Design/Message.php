@@ -42,6 +42,26 @@ class Message extends Renderer
     }
 
     /**
+     * Get messages and clean up them in storage
+     *
+     * @return array
+     */
+    public function takeMessages()
+    {
+        return $this->_getSession()->takeMessages();
+    }
+
+    /**
+     * Check having errors
+     *
+     * @return bool
+     */
+    public function hasErrors()
+    {
+        return $this->_getSession()->hasErrors();
+    }
+
+    /**
      * Get session
      *
      * @return Session

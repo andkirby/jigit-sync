@@ -30,6 +30,13 @@ class Session extends Data
     protected $_namespace;
 
     /**
+     * Has error message status
+     *
+     * @var bool
+     */
+    protected $_hasErrors = false;
+
+    /**
      * Constructor
      */
     public function __construct()
@@ -126,8 +133,8 @@ class Session extends Data
     /**
      * Set data
      *
-     * @param string $key
-     * @param array|string|int|null   $value
+     * @param string                $key
+     * @param array|string|int|null $value
      * @return $this
      */
     public function setData($key, $value = null)
@@ -160,6 +167,16 @@ class Session extends Data
     }
 
     /**
+     * Check having errors
+     *
+     * @return bool
+     */
+    public function hasErrors()
+    {
+        return $this->_hasErrors;
+    }
+
+    /**
      * Add error message
      *
      * @param string $message
@@ -167,7 +184,9 @@ class Session extends Data
      */
     public function addError($message)
     {
-        $messages = $this->getData(self::KEY_MESSAGES);
+        $this->_hasErrors = true;
+
+        $messages   = $this->getData(self::KEY_MESSAGES);
         $messages[] = array('type' => 'error', 'message' => (string)$message);
         $this->setData(self::KEY_MESSAGES, $messages);
         return $this;
@@ -181,7 +200,7 @@ class Session extends Data
      */
     public function addSuccess($message)
     {
-        $messages = $this->getData(self::KEY_MESSAGES);
+        $messages   = $this->getData(self::KEY_MESSAGES);
         $messages[] = array('type' => 'success', 'message' => $message);
         $this->setData(self::KEY_MESSAGES, $messages);
         return $this;
@@ -204,7 +223,20 @@ class Session extends Data
      */
     public function cleanUpMessages()
     {
+        $this->_hasErrors = false;
         $this->setData(self::KEY_MESSAGES, array());
         return $this;
+    }
+
+    /**
+     * Get messages and clean up them in storage
+     *
+     * @return array
+     */
+    public function takeMessages()
+    {
+        $messages = $this->getMessages();
+        $this->cleanUpMessages();
+        return $messages;
     }
 }

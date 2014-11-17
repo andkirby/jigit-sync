@@ -1,6 +1,7 @@
 <?php
 namespace App\Block;
 
+use Lib\Design\Message;
 use Lib\Design\Renderer;
 
 /**
@@ -17,7 +18,25 @@ class Json extends Renderer
      */
     protected function _toHtml()
     {
-        return json_encode($this->_getDataToJson());
+        $data = $this->_getDataToJson();
+        array(
+            'data'          => $data,
+            'messages'      => $this->_getMessagesBlock()->getMessages(),
+            'has_errors'    => $this->_getMessagesBlock()->hasErrors(),
+            'messages_html' => $this->_getMessagesBlock()->toHtml(),
+            'redirect'      => $this->_getRedirectUrl(),
+        );
+        return json_encode($data);
+    }
+
+    /**
+     * Get redirect URL
+     *
+     * @return array|string
+     */
+    protected function _getRedirectUrl()
+    {
+        return $this->getData('redirect_url');
     }
 
     /**
@@ -28,5 +47,15 @@ class Json extends Renderer
     protected function _getDataToJson()
     {
         return $this->getData('json_data');
+    }
+
+    /**
+     * Get messages block
+     *
+     * @return Message
+     */
+    protected function _getMessagesBlock()
+    {
+        return $this->getLayout()->getBlock('message');
     }
 }
