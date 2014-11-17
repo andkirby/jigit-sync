@@ -30,7 +30,15 @@ class IndexController extends Controller\AbstractController
      */
     public function indexAction()
     {
-        $this->_getRunner()->initConfig();
+        try {
+            $this->_getRunner()->initConfig();
+            $this->_checkInstallation();
+        } catch (UserException $e) {
+            $this->_getSession()->addError($e->getMessage());
+        } catch (\Exception $e) {
+            $this->_getSession()->addError('An error occurred on request.');
+        }
+
         $this->_loadLayout();
         $this->_renderBlocks();
     }
@@ -92,5 +100,20 @@ class IndexController extends Controller\AbstractController
     {
         $this->getRequest()->setPostParam('p', $this->getRequest()->getPostParam('project'));
         return $this;
+    }
+
+    /**
+     * Check installation
+     *
+     * @throws UserException
+     * @return bool
+     */
+    protected function _checkInstallation()
+    {
+        $helper = new Helper\Base();
+        if (!$helper->isInstalled()) {
+            throw new UserException('JiGIT was not fully installed. Please check your configuration.');
+        }
+        return true;
     }
 }
