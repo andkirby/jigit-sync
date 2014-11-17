@@ -20,6 +20,13 @@ class Renderer extends Data\Object
     protected $_children = array();
 
     /**
+     * Cache of child output
+     *
+     * @var array
+     */
+    protected $_childrenCache = array();
+
+    /**
      * Parent block
      *
      * @var Renderer
@@ -234,10 +241,16 @@ class Renderer extends Data\Object
      * Get child HTML
      *
      * @param string|null $name
+     * @param bool        $useCache
      * @return string
      */
-    public function getChildHtml($name = null)
+    public function getChildHtml($name = null, $useCache = true)
     {
+        //try to find cache
+        if ($useCache && isset($this->_childrenCache[(string)$name])) {
+            return $this->_childrenCache[(string)$name];
+        }
+
         if ($name) {
             $block    = $this->getChild($name);
             $children = $block ? array($block) : array();
@@ -247,6 +260,11 @@ class Renderer extends Data\Object
         $html = '';
         foreach ($children as $child) {
             $html .= $child->toHtml();
+        }
+
+        //put output into cache
+        if ($useCache) {
+            $this->_childrenCache[(string)$name] = $html;
         }
         return $html;
     }
