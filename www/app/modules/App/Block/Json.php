@@ -18,9 +18,8 @@ class Json extends Renderer
      */
     protected function _toHtml()
     {
-        $data = $this->_getDataToJson();
-        array(
-            'data'          => $data,
+        $data = array(
+            'data'          => $this->_getDataToJson(),
             'messages'      => $this->_getMessagesBlock()->getMessages(),
             'has_errors'    => $this->_getMessagesBlock()->hasErrors(),
             'messages_html' => $this->_getMessagesBlock()->toHtml(),
