@@ -17,6 +17,16 @@ class Json extends Renderer
      */
     protected function _toHtml()
     {
-        return json_encode($this->getData('json_data'));
+        return json_encode($this->_getDataToJson());
+    }
+
+    /**
+     * Get data which need to be convert to JSON
+     *
+     * @return array|string
+     */
+    protected function _getDataToJson()
+    {
+        return $this->getData('json_data');
     }
 }
