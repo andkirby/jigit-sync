@@ -9,11 +9,11 @@ use Jigit\Jira\IssueHelper;
 use Jigit\Output;
 
 /**
- * Class DefaultHelper
+ * Class Standard
  *
  * @package Jigit\Output\Cli
  */
-class DefaultHelper
+class Standard
 {
     /**
      * VCS model
@@ -25,7 +25,7 @@ class DefaultHelper
     /**
      * JQL helper
      *
-     * @var \Jigit\Jira\Jql\Helper\DefaultHelper
+     * @var \Jigit\Jira\Jql\Helper\Standard
      */
     protected $_helper;
 
@@ -46,7 +46,7 @@ class DefaultHelper
     /**
      * Get JQL helper
      *
-     * @return \Jigit\Jira\Jql\Helper\DefaultHelper
+     * @return \Jigit\Jira\Jql\Helper\Standard
      */
     public function getHelper()
     {
@@ -56,7 +56,7 @@ class DefaultHelper
     /**
      * Set JQL helper
      *
-     * @param \Jigit\Jira\Jql\Helper\DefaultHelper $helper
+     * @param \Jigit\Jira\Jql\Helper\Standard $helper
      * @return $this
      */
     public function setHelper($helper)

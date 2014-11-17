@@ -9,7 +9,7 @@ use Jigit\Jira\Jql;
  *
  * @package Jigit\Jira\Jql\Helper
  */
-class NotAffectsCode extends DefaultHelper
+class NotAffectsCode extends Standard
 {
     /**
      * Extra type for issues list which affects another branches

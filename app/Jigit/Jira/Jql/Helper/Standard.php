@@ -9,11 +9,11 @@ use Jigit\Jira\Issue;
 use Jigit\Jira\IssueHelper;
 
 /**
- * Class DefaultHelper
+ * Class Standard
  *
  * @package Jigit\Jira\Jql\Helper
  */
-class DefaultHelper
+class Standard
 {
     /**
      * Process result

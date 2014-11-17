@@ -10,7 +10,7 @@ use Jigit\Jira\Jql;
  *
  * @package Jigit\Jira\Jql\Helper
  */
-class WithoutFixVersion extends DefaultHelper
+class WithoutFixVersion extends Standard
 {
     /**
      * Issues in different branch

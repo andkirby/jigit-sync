@@ -34,13 +34,6 @@ class Run implements Dispatcher\InterfaceDispatcher
     /**#@-*/
 
     /**
-     * Output
-     *
-     * @var Output
-     */
-    protected $_output;
-
-    /**
      * VCS model
      *
      * @var Git
@@ -91,16 +84,15 @@ class Run implements Dispatcher\InterfaceDispatcher
      *
      * @param string $action
      * @param array  $params
-     * @param Output $output
      * @throws Exception
      * @throws UserException
-     * @return $this
+     * @return Report
      */
-    public function run($action, array $params, $output)
+    public function run($action, array $params)
     {
-        $this->initialize($action, $params, $output)
-            ->_processAction();
-        return $this;
+        $this->initialize($action, $params);
+        $report = new Report();
+        return $this->processAction($report);
     }
 
     /**
@@ -108,24 +100,20 @@ class Run implements Dispatcher\InterfaceDispatcher
      *
      * @param string $action
      * @param array  $params
-     * @param Output $output
      * @throws Exception
      * @throws UserException
      * @return $this
      */
-    public function initialize($action, array $params, $output)
+    public function initialize($action, array $params)
     {
         if ($this->_project) {
             return $this;
         }
-        $this->setOutput($output);
+        $this->setAction($action);
         $this->_checkRequestedHelp($params);
         $this->setProject(@$params['p']);
-        $this->setAction($action);
         $this->initConfig();
-        Config::getInstance()->setData('output', $this->_output);
         $this->_setParams($params);
-        $this->_setHeaderOutput();
         return $this;
     }
 
@@ -199,18 +187,6 @@ class Run implements Dispatcher\InterfaceDispatcher
     }
 
     /**
-     * Set output
-     *
-     * @param Output $output
-     * @return $this
-     */
-    public function setOutput(Output $output)
-    {
-        $this->_output = $output;
-        return $this;
-    }
-
-    /**
      * Set custom params
      *
      * @param array $params
@@ -226,16 +202,6 @@ class Run implements Dispatcher\InterfaceDispatcher
             }
         }
         return $this;
-    }
-
-    /**
-     * Get output
-     *
-     * @return Output
-     */
-    public function getOutput()
-    {
-        return $this->_output;
     }
 
     /**
@@ -297,22 +263,6 @@ class Run implements Dispatcher\InterfaceDispatcher
     }
 
     /**
-     * Set header output
-     *
-     * @return $this
-     */
-    protected function _setHeaderOutput()
-    {
-        $version = Config::getVersion();
-        $this->getOutput()
-            ->enableDecorator(true)
-            ->add("JiGIT v$version - JIRA GIT Synchronization Tool")
-            ->add('GitHUB: https://github.com/andkirby/jigit-sync')
-            ->disableDecorator();
-        return $this;
-    }
-
-    /**
      * Set project
      *
      * @param string $project
@@ -322,7 +272,6 @@ class Run implements Dispatcher\InterfaceDispatcher
     public function setProject($project)
     {
         if (!$project) {
-            $this->getOutput()->add($this->getHelp());
             throw new UserException('Please set project.', self::CODE_PROJECT_WRONG);
         }
         $this->_project = strtoupper($project);
@@ -342,23 +291,15 @@ class Run implements Dispatcher\InterfaceDispatcher
     }
 
     /**
-     * Get help string
-     *
-     * @return string
-     */
-    public function getHelp()
-    {
-        return file_get_contents(JIGIT_ROOT . '/config/cli-manual.txt');
-    }
-
-    /**
      * Process request by action verb
      *
-     * @throws \Jigit\Exception
+     * @param Report $report
+     * @throws Exception
+     * @throws UserException
+     * @return Report
      */
-    protected function _processAction()
+    public function processAction($report)
     {
-        $report = new Report();
         $report->setApi($this->_getApi())
             ->setVcs($this->getVcs());
         if (self::ACTION_REPORT == $this->_action) {
@@ -368,12 +309,9 @@ class Run implements Dispatcher\InterfaceDispatcher
             );
 
             $this->analiseRequest();
-            $this->setProjectInfoOutput();
 
             $gitKeys = $this->_getGitKeys();
-
-            $this->getOutput()->add('Found issues in VCS:');
-            $this->getOutput()->add(implode(', ', $gitKeys));
+            \Zend_Registry::set('vcs_keys', $gitKeys);
 
             $report->make(
                 $this->_getJqls($gitKeys, $this->_action)
@@ -383,39 +321,13 @@ class Run implements Dispatcher\InterfaceDispatcher
             //skip this because we need to work with issue keys only
             $this->getVcs()->setCheckNotValidCommits(false);
 
-            $this->setProjectInfoOutput();
-
             $report->make(
                 $this->_getJqls(null, $this->_action)
             );
         } else {
             throw new Exception('Invalid action.');
         }
-    }
-
-    /**
-     * Set project info output
-     *
-     * @return $this
-     */
-    public function setProjectInfoOutput()
-    {
-        $inProgress = Config\Project::getJiraTargetFixVersionInProgress() ? 'YES' : 'NO';
-        $branches = Config\Project::getGitBranchLow()
-            . ' -> ' . Config\Project::getGitBranchTop();
-        $project = Config\Project::getJiraProject();
-        $output = $this->getOutput();
-        $output->enableDecorator(true, true)
-            ->add("Project:             {$project}");
-        if ($branches) {
-            $output
-                ->add("Compare:             " . $branches)
-                ->add("Target FixVersion:   " . Config\Project::getJiraTargetFixVersion())
-                ->add("Version in progress: $inProgress")
-                ->add("Sprint:              " . Config\Project::getJiraActiveSprints());
-        }
-        $output->disableDecorator();
-        return $this;
+        return $report;
     }
 
     /**
@@ -602,10 +514,8 @@ class Run implements Dispatcher\InterfaceDispatcher
     protected function _checkRequestedHelp(array $params)
     {
         if (isset($params['h'])) {
-            $str = $this->getHelp();
-            $this->getOutput()->add($str);
             //todo Refactor code to avoid trowing exception
-            throw new UserException('Help', self::CODE_SHOW_HELP);
+            throw new UserException('Help!', self::CODE_SHOW_HELP);
         }
         return $params;
     }

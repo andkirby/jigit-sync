@@ -21,7 +21,7 @@ class Report
     /**
      * Helpers
      *
-     * @var Jira\Jql\Helper\DefaultHelper[]
+     * @var Jira\Jql\Helper\Standard[]
      */
     protected $_helpers;
 
@@ -109,34 +109,6 @@ class Report
             }
             $helper->process($type);
         }
-
-        $found = false;
-        foreach ($this->_helpers as $name => $helper) {
-            if ($helper->hasFound()) {
-                $found = true;
-                $outputHelper = $this->_getOutputHelper($name);
-                $outputHelper->setHelper($helper)
-                    ->setResult($helper->getResult())
-                    ->setVcs($this->getVcs());
-
-                $outputHelper->addOutput($this->_getOutput());
-            }
-        }
-        if (!$found) {
-            $this->_getOutput()->enableDecorator();
-            $this->_getOutput()->add('SUCCESS! Everything is OK');
-            $this->_getOutput()->disableDecorator();
-        }
-    }
-
-    /**
-     * Get output model
-     *
-     * @return Output
-     */
-    protected function _getOutput()
-    {
-        return Config::getInstance()->getData('output');
     }
 
     /**
@@ -177,11 +149,11 @@ class Report
      * Get JQL helper
      *
      * @param array $jql
-     * @return Jira\Jql\Helper\DefaultHelper
+     * @return Jira\Jql\Helper\Standard
      */
     protected function _getJqlHelper($jql)
     {
-        $helperName = isset($jql['helper']) ? ucfirst($jql['helper']) : 'DefaultHelper';
+        $helperName = isset($jql['helper']) ? ucfirst($jql['helper']) : 'Standard';
         if (!isset($this->_helpers[$helperName])) {
             $className = '\Jigit\Jira\Jql\Helper\\' . $helperName;
             $this->_helpers[$helperName] = new $className();
@@ -194,15 +166,12 @@ class Report
     }
 
     /**
-     * Get output helper
+     * Get helpers
      *
-     * @param string $name
-     * @return Output\Cli\DefaultHelper
+     * @return Jira\Jql\Helper\Standard[]
      */
-    protected function _getOutputHelper($name)
+    public function getJqlHelpers()
     {
-        $className = '\Jigit\Output\Cli\\' . $name;
-        /** @var Output\Cli\DefaultHelper $helper */
-        return new $className();
+        return $this->_helpers;
     }
 }

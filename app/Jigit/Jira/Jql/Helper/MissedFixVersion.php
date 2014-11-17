@@ -12,7 +12,7 @@ use Lib\Exception;
  *
  * @package Jigit\Jira\Jql\Helper
  */
-class MissedFixVersion extends DefaultHelper
+class MissedFixVersion extends Standard
 {
     /**
      * Default issues max count for JIRA API
@@ -165,7 +165,7 @@ class MissedFixVersion extends DefaultHelper
     {
         $tags   = $this->getVcs()->getTags();
         //add default branches to identify tasks there
-        $gitFlow = Config::getInstance()->getData('app/vcs/git_flow');
+        $gitFlow = Config::getInstance()->getData('app/vcs/git_flow', false);
         $tags[] = $gitFlow->master;
         $tags[] = $gitFlow->develop;
         return $tags;

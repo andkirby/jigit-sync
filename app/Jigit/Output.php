@@ -146,7 +146,7 @@ class Output
      */
     public function getOutputString()
     {
-        return implode($this->_outputDelimiter, $this->_output) . $this->_outputDelimiter;
+        return implode($this->getOutputDelimiter(), $this->_output) . $this->getOutputDelimiter();
     }
 
     /**
@@ -162,7 +162,7 @@ class Output
         if ($length > $this->_decoratorWidth) {
             $width   = $this->_decoratorWidth - $shift;
             $content = $this->_wordWrap($content, $width);
-            foreach (explode($this->_outputDelimiter, $content) as $line) {
+            foreach (explode($this->getOutputDelimiter(), $content) as $line) {
                 $this->_output[] = $this->_decorateRow($line);
             }
         } else {
@@ -241,7 +241,7 @@ class Output
     protected function _wordWrap($content, $width)
     {
         $content = wordwrap($content, $width);
-        $content = str_replace("\r\n", $this->_outputDelimiter, $content);
-        return str_replace("\n", $this->_outputDelimiter, $content);
+        $content = str_replace("\r\n", $this->getOutputDelimiter(), $content);
+        return str_replace("\n", $this->getOutputDelimiter(), $content);
     }
 }

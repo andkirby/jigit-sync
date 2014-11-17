@@ -7,26 +7,24 @@ use Jigit\Jira as JigitJira;
 use Jigit\Output as Output;
 use Jigit\UserException;
 
-$output = new Output();
+$cli = new Output\Cli(
+    new Output()
+);
 
 try {
-    //@startSkipCommitHooks
-    parse_str(implode('&', array_slice($argv, 1)), $_GET);
-    reset($_GET);
-    $action = key($_GET);
-    unset($_GET[$action]);
+    parse_str(implode('&', array_slice($argv, 1)), $params);
+    reset($params);
+    $action = key($params);
+    unset($params[$action]);
     $runner = new Jigit\Run();
-    $runner->run($action, $_GET, $output);
-    //@finishSkipCommitHooks
+    $report = $runner->run($action, $params);
+    $cli->process($report->getJqlHelpers(), $runner->getVcs());
 } catch (UserException $e) {
-    if ($e->getCode() != 911) {
-        //skip help exception
-        $output->add('ERROR: ' . $e->getMessage());
-    }
+    $cli->addException($e);
 } catch (Exception $e) {
-    $output->add('SYSTEM ERROR: ' . $e->getMessage());
-    $output->add('TRACE: ' . PHP_EOL . $e->getTraceAsString());
-    echo $output->getOutputString();
+    $cli->addException($e);
+}
+echo $cli->getOutput()->getOutputString();
+if (isset($e)) {
     exit(1);
 }
-echo $output->getOutputString();

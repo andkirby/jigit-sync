@@ -8,7 +8,7 @@ namespace Jigit\Output\Cli;
  * @method \Jigit\Jira\Jql\Helper\MissedFixVersion getHelper()
  * @property \Jigit\Jira\Jql\Helper\MissedFixVersion _helper
  */
-class MissedFixVersion extends DefaultHelper
+class MissedFixVersion extends Standard
 {
     /**
      * Get issue content block

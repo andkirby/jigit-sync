@@ -29,8 +29,7 @@ interface InterfaceDispatcher
      *
      * @param string $action
      * @param array  $params
-     * @param Output $output
      * @return $this
      */
-    public function run($action, array $params, $output);
+    public function run($action, array $params);
 }

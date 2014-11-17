@@ -32,7 +32,7 @@ class Config
      */
     static public function getVersion()
     {
-        return self::getInstance()->version;
+        return self::getInstance()->getData('app/version');
     }
 
     /**

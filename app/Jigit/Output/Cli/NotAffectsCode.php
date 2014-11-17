@@ -8,6 +8,6 @@ namespace Jigit\Output\Cli;
  * @method \Jigit\Jira\Jql\Helper\NotAffectsCode getHelper()
  * @property \Jigit\Jira\Jql\Helper\NotAffectsCode _helper
  */
-class NotAffectsCode extends DefaultHelper
+class NotAffectsCode extends Standard
 {
 }
