@@ -11,6 +11,9 @@ jigit_x_x:
         - addLink:
           - js
           - skin/js/webix/codebase/webix_debug.js
+        - addLink:
+          - js
+          - skin/js/jigit/form.js
     body:
       _module: Jigit
       _class: Jigit\Block\Main

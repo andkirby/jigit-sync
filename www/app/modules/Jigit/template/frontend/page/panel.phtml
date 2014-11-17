@@ -8,13 +8,16 @@ $this->setData('padding', 5);
         var form = $$('jigit_panel');
         form.elements.button_submit.attachEvent('onItemClick', function () {
             webix.ajax().post('<?php echo $this->getUrl('*/*/post'); ?>',
-                form.getValues(),
-                function (text, xml, xhr) {
-                    var response = xml.json();
-                    if (response.has_errors) {
-                        webix.message(response.messages_html, 'alert')
+                form.getValues({disabled: false}),
+                [
+                    JIGIT.Form.defaultRequestCallback,
+                    function (text, xml, xhr) {
+                        var response = xml.json();
+                        if (!response.has_errors) {
+                            console.info('Success');
+                        }
                     }
-                }
+                ]
             );
         });
     });
