@@ -60,12 +60,12 @@ class Git implements InterfaceVcs
     /**
      * Set check wrong commits status
      *
-     * @param bool $ignoreWrongCommits
+     * @param bool $flag
      * @return $this
      */
-    public function setCheckNotValidCommits($ignoreWrongCommits)
+    public function setCheckNotValidCommits($flag)
     {
-        $this->_checkWrongCommits = $ignoreWrongCommits;
+        $this->_checkWrongCommits = $flag;
         return $this;
     }
 
