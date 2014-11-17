@@ -7,9 +7,31 @@ $this->setData('padding', 5);
     webix.ready(function () {
         var form = $$('jigit_panel');
         form.elements.button_submit.attachEvent('onItemClick', function () {
-            webix.ajax().post('<?php echo $this->getUrl('*/*/post'); ?>',
-                form.getValues({disabled: false}),
-                [
+            var values = form.getValues({disabled: false});
+            if (!form.validate()) {
+                JIGIT.Form.showInvalidFormMessage();
+                return;
+            }
+            if (values.action == 'report') {
+                webix.ajax().post(
+                    '<?php echo $this->getUrl('*/*/getPanelOptions'); ?>',
+                    values, [
+                        JIGIT.Form.defaultRequestCallback,
+                        function (text, xml, xhr) {
+                            var response = xml.json();
+                            if (!response.has_errors) {
+                                console.info('Success');
+                            }
+                        }
+                    ]
+                );
+                return;
+            }
+
+            //make request
+            webix.ajax().post(
+                '<?php echo $this->getUrl('*/*/post'); ?>',
+                values, [
                     JIGIT.Form.defaultRequestCallback,
                     function (text, xml, xhr) {
                         var response = xml.json();

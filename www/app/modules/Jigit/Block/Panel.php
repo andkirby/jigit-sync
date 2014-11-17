@@ -32,12 +32,14 @@ class Panel extends FormAbstract
         $this->_addElement(
             'action', 'combo', array(
                 'placeholder' => 'Action',
+                'required'    => true,
                 'options'     => $this->getActions(),
             )
         );
         $this->_addElement(
             'project', 'combo', array(
                 'placeholder' => 'Project',
+                'required'    => true,
                 'options'     => $this->getProjects(),
             )
         );
@@ -69,6 +71,7 @@ class Panel extends FormAbstract
             'button_submit', 'button', array(
                 'value' => 'Send',
                 'type' => 'form',
+                'width' => 100,
                 'action' => '/test',
             )
         );

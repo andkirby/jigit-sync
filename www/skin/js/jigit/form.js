@@ -10,6 +10,10 @@ var JIGIT = JIGIT || {};
             if (response.has_errors) {
                 webix.message(response.messages_html, 'alert');
             }
+        },
+        showInvalidFormMessage: function (message) {
+            message = message || 'Please fill up required items.';
+            webix.message('<b style="color: #ff0e10">' + message + '</b>', 'info', 8000);
         }
     };
 }());
