@@ -1,7 +1,7 @@
 <?php
 namespace Jigit\Jira\Jql\Helper;
 
-use chobie\Jira\Issue;
+use Jigit\Jira\Issue;
 use Jigit\Jira\Jql;
 
 /**
