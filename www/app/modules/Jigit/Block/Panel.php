@@ -5,6 +5,7 @@ use Jigit\Block\Webix\Widget\Container\FormAbstract;
 use Jigit\Config;
 use Jigit\Git;
 use Jigit\Helper\Base;
+use Jigit\Run;
 use Lib\Design\Renderer;
 
 /**
@@ -139,7 +140,18 @@ class Panel extends FormAbstract
      */
     public function getVcs()
     {
-        return \Zend_Registry::get('vcs');
+        return $this->getRunner()->getVcs();
+    }
+
+    /**
+     * Get runner
+     *
+     * @return Run
+     * @throws \Zend_Exception
+     */
+    public function getRunner()
+    {
+        return \Zend_Registry::get('runner');
     }
 
     /**
