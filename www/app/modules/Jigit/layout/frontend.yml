@@ -18,3 +18,7 @@ jigit_x_x:
       panel:
         _class: Jigit\Block\Panel
         _template: page/panel
+
+jigit_index_post:
+  root:
+    _class: Jigit\Block\Post
