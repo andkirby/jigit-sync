@@ -14,9 +14,22 @@ use Lib\Config as LibConfig;
 class Run implements Dispatcher\InterfaceDispatcher
 {
     /**#@+
+     * Exception codes
+     */
+    const CODE_PROJECT_WRONG                 = 10;
+    const CODE_VERSION_WRONG                 = 11;
+    const CODE_BRANCH_VERSION_NOT_FOUND      = 12;
+    const CODE_VERSION_PREFIX_NOT_SET        = 13;
+    const CODE_BRANCH_LOW_TOP_EMTPY          = 14;
+    const CODE_LOW_BRANCH_NOT_FOUND_NEED_SET = 15;
+    const CODE_ACTION_EMPTY                  = 16;
+    const CODE_SHOW_HELP                     = 911;
+    /**#@-*/
+
+    /**#@+
      * Action names
      */
-    const ACTION_REPORT = 'report';
+    const ACTION_REPORT     = 'report';
     const ACTION_PUSH_TASKS = 'push-tasks';
     /**#@-*/
 
@@ -107,8 +120,8 @@ class Run implements Dispatcher\InterfaceDispatcher
         }
         $this->setOutput($output);
         $this->_checkRequestedHelp($params);
-        $this->_setProject(@$params['p']);
-        $this->_setAction($action);
+        $this->setProject(@$params['p']);
+        $this->setAction($action);
         $this->initConfig();
         Config::getInstance()->setData('output', $this->_output);
         $this->_setParams($params);
@@ -121,15 +134,25 @@ class Run implements Dispatcher\InterfaceDispatcher
      *
      * @param string $action
      * @return $this
-     * @throws \Jigit\UserException
+     * @throws UserException
      */
-    protected function _setAction($action)
+    public function setAction($action)
     {
         if (!in_array($action, $this->_availableActions)) {
-            throw new UserException('Proper action is not set.');
+            throw new UserException('Proper action is not set.', self::CODE_ACTION_EMPTY);
         }
         $this->_action = $action;
         return $this;
+    }
+
+    /**
+     * Get available actions
+     *
+     * @return string
+     */
+    public function getAvailableActions()
+    {
+        return $this->_availableActions;
     }
 
     /**
@@ -154,7 +177,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      * Get GIT keys found from range
      *
      * @return array
-     * @throws \Jigit\UserException
+     * @throws UserException
      */
     protected function _getGitKeys()
     {
@@ -192,7 +215,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      *
      * @param array $params
      * @return $this
-     * @throws \Jigit\UserException
+     * @throws UserException
      */
     protected function _setParams(array $params)
     {
@@ -294,15 +317,14 @@ class Run implements Dispatcher\InterfaceDispatcher
      *
      * @param string $project
      * @return $this
-     * @throws \Jigit\UserException
+     * @throws UserException
      */
-    protected function _setProject($project)
+    public function setProject($project)
     {
         if (!$project) {
             $this->getOutput()->add($this->getHelp());
-            throw new UserException('Please set project.');
+            throw new UserException('Please set project.', self::CODE_PROJECT_WRONG);
         }
-
         $this->_project = strtoupper($project);
         return $this;
     }
@@ -411,7 +433,7 @@ class Run implements Dispatcher\InterfaceDispatcher
         }
         $fixVersion = Config\Project::getJiraTargetFixVersion();
         if (!$fixVersion) {
-            throw new UserException('Please set your target FixVersion at least.');
+            throw new UserException('Please set your target version at least.', self::CODE_VERSION_WRONG);
         }
 
         $branches = $this->_getBranchesFromFixVersionAliasByFixVersion($fixVersion);
@@ -419,7 +441,10 @@ class Run implements Dispatcher\InterfaceDispatcher
             $branches = $this->_getBranchesFromVcsByFixVersion($fixVersion);
         }
         if (!$branches) {
-            throw new UserException("Branch for FixVersion '$fixVersion' not found. Please set it manually.");
+            throw new UserException(
+                "Branch for version '$fixVersion' not found. Please set it manually.",
+                self::CODE_BRANCH_VERSION_NOT_FOUND
+            );
         }
         Config\Project::setGitBranchTop($branches['branch_top']);
         Config\Project::setGitBranchLow($branches['branch_low']);
@@ -438,7 +463,10 @@ class Run implements Dispatcher\InterfaceDispatcher
     {
         $prefix = Config::getInstance()->getData('app/vcs/version/prefix');
         if (false === strpos($fixVersion, $prefix)) {
-            throw new UserException("Please use prefix '$prefix' in in the FixVersion name '$fixVersion'.");
+            throw new UserException(
+                "Please use prefix '$prefix' in in the version name '$fixVersion'.",
+                self::CODE_VERSION_PREFIX_NOT_SET
+            );
         }
         return substr($fixVersion, strlen($prefix));
     }
@@ -461,7 +489,9 @@ class Run implements Dispatcher\InterfaceDispatcher
         if (!isset($versionAliases[$fixVersion]['branch_top'])
             || !isset($versionAliases[$fixVersion]['branch_low'])
         ) {
-            throw new UserException('Please specify your branch top and branch low.');
+            throw new UserException(
+                'Please specify your branch top and branch low.', self::CODE_BRANCH_LOW_TOP_EMTPY
+            );
         }
 
         if (Config\Project::getVcsForceRemoteStatus()) {
@@ -513,7 +543,10 @@ class Run implements Dispatcher\InterfaceDispatcher
                 } elseif (false !== strpos($branchTop, 'release')) {
                     $branchLow = Config::getInstance()->getData('app/vcs/git_flow/master');
                 } else {
-                    throw new UserException("Could not find low branch for branch '$branchTop'. You may set it.");
+                    throw new UserException(
+                        "Could not find low branch for branch '$branchTop'. You may set it.",
+                        self::CODE_LOW_BRANCH_NOT_FOUND_NEED_SET
+                    );
                 }
             }
 
@@ -572,7 +605,7 @@ class Run implements Dispatcher\InterfaceDispatcher
             $str = $this->getHelp();
             $this->getOutput()->add($str);
             //todo Refactor code to avoid trowing exception
-            throw new UserException('Help', 911);
+            throw new UserException('Help', self::CODE_SHOW_HELP);
         }
         return $params;
     }
