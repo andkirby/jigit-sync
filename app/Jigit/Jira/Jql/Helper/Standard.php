@@ -18,6 +18,8 @@ class Standard
     /**
      * Process result
      *
+     * It should has format: _result[jql_type][issue_key] = new Issue()
+     *
      * @var array
      */
     protected $_result = array();
@@ -240,6 +242,8 @@ class Standard
 
     /**
      * Get result issues list
+     *
+     * It should has format: _result[jql_type][issue_key] = new Issue()
      *
      * @return array
      */
