@@ -23,7 +23,7 @@ class Report
      *
      * @var Jira\Jql\Helper\Standard[]
      */
-    protected $_helpers;
+    protected $_helpers = array();
 
     /**
      * Dispatcher
