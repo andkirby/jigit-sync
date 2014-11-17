@@ -36,7 +36,7 @@ class IndexController extends Controller\AbstractController
         } catch (UserException $e) {
             $this->_getSession()->addError($e->getMessage());
         } catch (\Exception $e) {
-            $this->_getSession()->addError('An error occurred on request.');
+            $this->_getSession()->addError('An error occurred on load JiGIT configuration.');
         }
 
         $this->_loadLayout();
