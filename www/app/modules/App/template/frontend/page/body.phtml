@@ -1,6 +1,6 @@
 <?php /** @var $this \Lib\Design\Renderer */ ?>
 <div class="container container_12">
     <?php echo $this->getChildHtml('header'); ?>
-    <?php echo $this->getChildHtml('message'); ?>
+    <?php echo $this->getLayout()->getBlock('message')->toHtml(); ?>
     <div class="content"><?php echo $this->getChildHtml('content'); ?></div>
 </div>
