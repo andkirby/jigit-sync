@@ -50,7 +50,7 @@ class Cli
      * @param Git   $vcs
      * @return $this
      */
-    public function process($resultHelpers, Git $vcs)
+    public function processResult($resultHelpers, Git $vcs)
     {
         $this->_setHeaderOutput();
         $this->_addVcsKeysOutput();

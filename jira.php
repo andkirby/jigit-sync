@@ -18,7 +18,7 @@ try {
     unset($params[$action]);
     $runner = new Jigit\Run();
     $report = $runner->run($action, $params);
-    $cli->process($report->getJqlHelpers(), $runner->getVcs());
+    $cli->processResult($report->getJqlHelpers(), $runner->getVcs());
 } catch (UserException $e) {
     $cli->addException($e);
 } catch (Exception $e) {
