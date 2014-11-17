@@ -5,7 +5,6 @@ use Jigit\Config;
 use Jigit\Git;
 use Jigit\Jira\Api;
 use Jigit\Jira\Issue;
-use Jigit\Jira\IssueHelper;
 use Jigit\Output;
 
 /**
@@ -153,16 +152,6 @@ class Standard
     }
 
     /**
-     * Get issue helper
-     *
-     * @return IssueHelper
-     */
-    protected function _getIssueHelper()
-    {
-        return new IssueHelper();
-    }
-
-    /**
      * Add result output
      *
      * @param Output $output
@@ -223,16 +212,15 @@ class Standard
         } elseif (Config\Jira::getIssueViewSimple()) {
             $strIssue = "{$issue->getKey()}: {$issue->getSummary()}";
         } else {
-            $authors = $this->_getIssueHelper()->getIssueAuthors(
-                $issue, $this->getVcs()->getCommits()
+            $authors = $issue->getAuthors(
+                $this->getVcs()->getCommits()
             );
             $authors = implode(', ', $authors);
-            $issueHelper       = $this->_getIssueHelper();
-            $sprint            = $issueHelper->getIssueSprint($issue);
-            $status            = $issueHelper->getIssueStatus($issue);
-            $type              = $issueHelper->getIssueType($issue);
-            $affectedVersions  = implode(', ', $issueHelper->getIssueAffectsVersions($issue));
-            $fixVersionsString = implode(', ', $issueHelper->getIssueFixVersions($issue));
+            $sprints           = implode(', ', $issue->getSprintsSimple(true));
+            $status            = $issue->getStatusName();
+            $type              = $issue->getTypeName();
+            $affectedVersions  = implode(', ', $issue->getAffectsVersionsNames());
+            $fixVersionsString = implode(', ', $issue->getFixVersionsNames());
 
 //@startSkipCommitHooks
             $strIssue          = <<<STR
@@ -241,7 +229,7 @@ Type:              {$type}
 AffectedVersion/s: {$affectedVersions}
 FixVersion/s:      {$fixVersionsString}
 Status:            {$status}
-Sprint:            {$sprint}
+Sprint:            {$sprints}
 Author/s:          {$authors}
 STR;
 //@finishSkipCommitHooks

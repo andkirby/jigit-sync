@@ -210,9 +210,8 @@ class MissedFixVersion extends Standard
      */
     protected function _getIssueMissedVersions($issue, $versions)
     {
-        $issueHelper     = $this->_getIssueHelper();
-        $affectsVersions = $issueHelper->getIssueAffectsVersions($issue);
-        $fixVersions     = $issueHelper->getIssueAffectsVersions($issue);
+        $affectsVersions = $issue->getAffectsVersionsNames();
+        $fixVersions     = $issue->getFixVersionsNames();
         foreach ($versions as $v => $version) {
             if (in_array($version, $affectsVersions)
                 || in_array($version, $fixVersions)

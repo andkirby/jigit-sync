@@ -1,8 +1,8 @@
 <?php
 namespace Jigit\Jira\Jql\Helper;
 
-use chobie\Jira\Issue;
 use Jigit\Config;
+use Jigit\Jira\Issue;
 use Jigit\Jira\Jql;
 
 /**
@@ -45,8 +45,8 @@ class WithoutFixVersion extends Standard
     {
         $prefix           = Config::getInstance()->getData('app/vcs/version/prefix');
         $targetFixVersion = Config\Project::getJiraTargetFixVersion();
-        $fixVersions      = $this->_getIssueHelper()->getIssueFixVersions($issue);
-        $affectedVersions = $this->_getIssueHelper()->getIssueAffectsVersions($issue);
+        $affectedVersions = $issue->getAffectsVersionsNames();
+        $fixVersions      = $issue->getFixVersionsNames();
         foreach ($affectedVersions as $affVer) {
             $affVer = ltrim($affVer, $prefix);
             foreach ($fixVersions as $fixVer) {

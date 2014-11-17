@@ -6,7 +6,6 @@ use Jigit\Exception;
 use Jigit\Git;
 use Jigit\Jira\Api;
 use Jigit\Jira\Issue;
-use Jigit\Jira\IssueHelper;
 
 /**
  * Class Standard
@@ -260,16 +259,6 @@ class Standard
     public function getJqlTypes()
     {
         return array_keys($this->_jqlItems);
-    }
-
-    /**
-     * Get issue helper
-     *
-     * @return IssueHelper
-     */
-    protected function _getIssueHelper()
-    {
-        return new IssueHelper();
     }
 
     /**

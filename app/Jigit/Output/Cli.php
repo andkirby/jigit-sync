@@ -108,6 +108,7 @@ class Cli
      */
     protected function _addVcsKeysOutput()
     {
+        //TODO refactor getting such keys
         if (\Zend_Registry::isRegistered('vcs_keys')) {
             $this->getOutput()->add('Found issues in VCS:');
             $this->getOutput()->add(implode(', ', \Zend_Registry::get('vcs_keys')));
