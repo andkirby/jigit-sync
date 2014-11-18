@@ -131,7 +131,7 @@ class Panel extends FormAbstract
      */
     public function getBranches()
     {
-        return array_merge($this->getVcs()->getBranches(), $this->getVcs()->getTags());
+        return array_merge($this->getVcs()->getBranches(), $this->getVcs()->getTags(false));
     }
 
     /**
