@@ -78,7 +78,7 @@ class Panel extends FormAbstract
         );
         $this->_addElement(
             'fetch_remote', 'button', array(
-                'value'    => 'Fetch Remote',
+                'value'    => 'Fetch Updates',
                 'type'     => 'form',
                 'disabled' => true,
                 'width'    => 130,
@@ -205,8 +205,8 @@ class Panel extends FormAbstract
         if ($project) {
             $result = $this->getRunner()->getApi()->getVersions($project);
             foreach ($result->getResult() as $item) {
-                $group      = (bool)$item['released'] ? 'Released' : 'Unreleased';
-                $versions[] = $item['name'];
+                $group      = (bool)$item['released'] ? ' (Released)' : '';
+                $versions[] = $item['name'] . $group;
             }
             //@startSkipCommitHooks
             $callFunction = function ($a, $b) {
