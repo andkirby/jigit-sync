@@ -143,6 +143,8 @@ class Git implements InterfaceVcs
         } else {
             $result = trim($this->runInProjectDir('branch'));
         }
+        $result = preg_replace('~.*?HEAD.*~', '', $result);
+        $result = str_replace("\n\n", "\n", $result);
         return explode("\n", $result);
     }
 
