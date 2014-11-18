@@ -53,6 +53,18 @@ class Request
     }
 
     /**
+     * Get parameter
+     *
+     * @param string $name
+     * @param string|array $default
+     * @return string|array
+     */
+    public function getParam($name, $default = null)
+    {
+        return $this->getPostParam($name) ?: ($this->getGetParam($name) ?: $default);
+    }
+
+    /**
      * Set POST parameter
      *
      * @param string $name
