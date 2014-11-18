@@ -61,7 +61,11 @@ class Request
      */
     public function getParam($name, $default = null)
     {
-        return $this->getPostParam($name) ?: ($this->getGetParam($name) ?: $default);
+        $param = $this->getPostParam($name);
+        if (null === $param) {
+            $param = $this->getGetParam($name, $default);
+        }
+        return $param;
     }
 
     /**
