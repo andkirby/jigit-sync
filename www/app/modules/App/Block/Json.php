@@ -19,7 +19,7 @@ class Json extends Renderer
     protected function _toHtml()
     {
         $data = array(
-            'data'          => $this->_getDataToJson(),
+            'data'          => $this->getDataToJson(),
             'messages'      => $this->_getMessagesBlock()->getMessages(),
             'has_errors'    => $this->_getMessagesBlock()->hasErrors(),
             'messages_html' => $this->_getMessagesBlock()->toHtml(),
@@ -43,7 +43,7 @@ class Json extends Renderer
      *
      * @return array|string
      */
-    protected function _getDataToJson()
+    public function getDataToJson()
     {
         return $this->getData('json_data');
     }
