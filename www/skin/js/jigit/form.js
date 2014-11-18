@@ -16,4 +16,21 @@ var JIGIT = JIGIT || {};
             webix.message('<b style="color: #ff0e10">' + message + '</b>', 'info', 8000);
         }
     };
+    JIGIT.Panel = {
+        form: null,
+        setOptions: function (options) {
+            this.form.elements.low.define(
+                'options',
+                options.low
+            );
+            this.form.elements.top.define(
+                'options',
+                options.top
+            );
+            this.form.elements.ver.define(
+                'options',
+                options.ver
+            );
+        }
+    };
 }());

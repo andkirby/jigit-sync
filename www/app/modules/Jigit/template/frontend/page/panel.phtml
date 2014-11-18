@@ -6,6 +6,7 @@ $this->setData('padding', 5);
 <script type="text/javascript">
     webix.ready(function () {
         var form = $$('jigit_panel');
+        JIGIT.Panel.form = form;
 
         //process choosing action
         form.elements.action.attachEvent('onChange', function (value) {
@@ -20,7 +21,17 @@ $this->setData('padding', 5);
             }
         });
 
+        //enable fetch remote if project set
+        if (form.elements.project.getValue()) {
+            form.elements.fetch_remote.enable();
+        }
+
+        //change project
         form.elements.project.attachEvent('onChange', function (value) {
+            if (!value) {
+                return;
+            }
+            form.elements.fetch_remote.enable();
             webix.ajax().post(
                 '<?php echo $this->getUrl('*/*/getPanelOptions'); ?>',
                 form.getValues({disabled: false}), [
@@ -28,19 +39,25 @@ $this->setData('padding', 5);
                     function (text, xml, xhr) {
                         var response = xml.json();
                         if (!response.has_errors && typeof response.data.options.data != 'undefined') {
-                            form.elements.low.define(
-                                'options',
-                                response.data.options.data.low
-                            );
-                            form.elements.top.define(
-                                'options',
-                                response.data.options.data.top
-                            );
-                            form.elements.ver.define(
-                                'options',
-                                response.data.options.data.ver
-                            );
+                            JIGIT.Panel.setOptions(response.data.options.data);
                             console.info('Success');
+                        }
+                    }
+                ]
+            );
+        });
+
+        //refresh options
+        form.elements.fetch_remote.attachEvent('onItemClick', function (value) {
+            webix.ajax().post(
+                '<?php echo $this->getUrl('*/*/getPanelOptions', array('fetch' => 1)); ?>',
+                form.getValues({disabled: false}), [
+                    JIGIT.Form.defaultRequestCallback,
+                    function (text, xml, xhr) {
+                        var response = xml.json();
+                        if (!response.has_errors && typeof response.data.options.data != 'undefined') {
+                            JIGIT.Panel.setOptions(response.data.options.data);
+                            console.info('Success Fetch');
                         }
                     }
                 ]
@@ -78,6 +95,7 @@ $this->setData('padding', 5);
                     function (text, xml, xhr) {
                         var response = xml.json();
                         if (!response.has_errors) {
+                            //TODO process response
                             console.info('Success');
                         }
                     }

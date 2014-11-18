@@ -36,14 +36,16 @@ class Panel extends FormAbstract
                 'options'     => $this->getActions(),
             )
         );
+
+        $project = Config\Project::getJiraProject();
         $this->_addElement(
             'project', 'combo', array(
                 'placeholder' => 'Project',
                 'required'    => true,
                 'options'     => $this->getProjects(),
+                'value'       => $project,
             )
         );
-        $project = Config\Project::getJiraProject();
 
         $this->_addElement(
             'ver', 'combo', array(
@@ -70,9 +72,16 @@ class Panel extends FormAbstract
         $this->_addElement(
             'button_submit', 'button', array(
                 'value' => 'Send',
-                'type' => 'form',
+                'type'  => 'form',
                 'width' => 100,
-                'action' => '/test',
+            )
+        );
+        $this->_addElement(
+            'fetch_remote', 'button', array(
+                'value'    => 'Fetch Remote',
+                'type'     => 'form',
+                'disabled' => true,
+                'width'    => 130,
             )
         );
         return $this;
@@ -85,7 +94,7 @@ class Panel extends FormAbstract
      */
     public function getProjects()
     {
-        $helper = $this->_getHelper();
+        $helper   = $this->_getHelper();
         $projects = array();
         foreach ($helper->getProjects() as $project) {
             $projects[] = array(
@@ -105,13 +114,13 @@ class Panel extends FormAbstract
     {
         return array(
             array(
-                'id'    => 'report',
-                'value' => 'Report',
+                'id'       => 'report',
+                'value'    => 'Report',
             ),
             array(
                 'id'    => 'push-tasks',
-                'value' => 'Check version',
-            ),
+                'value' => 'Push Tasks',
+            )
         );
     }
 
@@ -191,9 +200,29 @@ class Panel extends FormAbstract
      */
     public function getProjectVersions()
     {
-        $project = $this->getRequest()->getPostParam('project');
+        $versions = array();
+        $project  = Config\Project::getJiraProject();
+        if ($project) {
+            $result = $this->getRunner()->getApi()->getVersions($project);
+            foreach ($result->getResult() as $item) {
+                $group      = (bool)$item['released'] ? 'Released' : 'Unreleased';
+                $versions[] = $item['name'];
+            }
+            //@startSkipCommitHooks
+            $callFunction = function ($a, $b) {
+                return -1 * version_compare($a, $b);
+            };
+            //@finishSkipCommitHooks
+            usort($versions, $callFunction);
+            foreach ($versions as $key => $item) {
+                $versions[$key] = array(
+                    'id'    => $item,
+                    'value' => $item,
+                );
+            }
+        }
 
-        return $project ? $this->getRunner()->getApi()->getVersions($project) : array();
+        return $versions;
     }
 
     /**
