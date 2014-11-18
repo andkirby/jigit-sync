@@ -7,6 +7,7 @@ use chobie\Jira as JiraLib;
  * Class Api
  *
  * @package Jigit\Jira
+ * @method Api\Result getVersions()
  */
 class Api extends JiraLib\Api
 {
