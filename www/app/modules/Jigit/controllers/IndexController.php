@@ -31,7 +31,14 @@ class IndexController extends Controller\AbstractController
     public function indexAction()
     {
         try {
-            $this->_getRunner()->initConfig();
+            $project = $this->getRequest()->getParam('project');
+            if ($project) {
+                $this->_getRunner()->setProject($project);
+            }
+
+            $this->_getRunner()
+                ->initConfig();
+
             $this->_checkInstallation();
         } catch (UserException $e) {
             $this->_getSession()->addError($e->getMessage());
@@ -53,7 +60,7 @@ class IndexController extends Controller\AbstractController
             \Zend_Registry::set('report', $report);
             $this->_setProjectAlias();
             $this->_getRunner()
-                ->initialize($this->getRequest()->getPostParam('action'), $this->getRequest()->getPost());
+                ->initialize($this->getRequest()->getParam('action'), $this->getRequest()->getParams());
             $this->_getRunner()
                 ->getVcs()->validate();
             $this->_processAction($report);
@@ -75,6 +82,9 @@ class IndexController extends Controller\AbstractController
             $this->_getRunner()
                 ->setProject($this->getRequest()->getPostParam('project'))
                 ->initConfig();
+            if ($this->getRequest()->getParam('fetch')) {
+                $this->_getRunner()->getVcs()->fetchRemote();
+            }
         } catch (UserException $e) {
             $this->_getSession()->addError($e->getMessage());
         } catch (\Exception $e) {
@@ -116,7 +126,7 @@ class IndexController extends Controller\AbstractController
      */
     protected function _setProjectAlias()
     {
-        $this->getRequest()->setPostParam('p', $this->getRequest()->getPostParam('project'));
+        $this->getRequest()->setPostParam('p', $this->getRequest()->getParam('project'));
         return $this;
     }
 
