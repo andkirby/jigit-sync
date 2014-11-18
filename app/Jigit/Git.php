@@ -116,6 +116,17 @@ class Git implements InterfaceVcs
     }
 
     /**
+     * Fetch remote
+     *
+     * @return $this
+     */
+    public function fetchRemote()
+    {
+        $this->runInProjectDir('fetch ' . Config\Project::getVcsRemoteName());
+        return $this;
+    }
+
+    /**
      * Get tags list
      *
      * @param bool $reverse
@@ -131,20 +142,28 @@ class Git implements InterfaceVcs
      * Get branches list
      *
      * @param bool $withRemote
+     * @param bool $onlyRemote
+     * @param bool $excludeFeature
      * @return array
      */
-    public function getBranches($withRemote = true)
+    public function getBranches($withRemote = true, $onlyRemote = true, $excludeFeature = true)
     {
-        if ($withRemote) {
+        if ($withRemote && !$onlyRemote) {
             $result = trim($this->runInProjectDir('branch -a'));
             $result = str_replace('remotes/', '', $result);
             $result = str_replace('* ', '', $result);
             $result = str_replace(' ', '', $result);
+        } elseif ($onlyRemote) {
+            $result = trim($this->runInProjectDir('branch -r'));
+            $result = str_replace('remotes/', '', $result);
         } else {
             $result = trim($this->runInProjectDir('branch'));
         }
         $result = preg_replace('~.*?HEAD.*~', '', $result);
-        $result = str_replace("\n\n", "\n", $result);
+        if ($excludeFeature) {
+            $result = preg_replace('~.*?feature.*~', '', $result);
+        }
+        $result = preg_replace("/\n+/", "\n", $result);
         return explode("\n", $result);
     }
 
