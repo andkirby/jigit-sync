@@ -148,7 +148,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      *
      * @return Jira\Api
      */
-    protected function _getApi()
+    public function getApi()
     {
         if (null === $this->_api) {
             $this->_api = new Jira\Api(
@@ -300,7 +300,7 @@ class Run implements Dispatcher\InterfaceDispatcher
      */
     public function processAction($report)
     {
-        $report->setApi($this->_getApi())
+        $report->setApi($this->getApi())
             ->setVcs($this->getVcs());
         if (self::ACTION_REPORT == $this->_action) {
             //ignore invalid commits (which does not have issue key)
