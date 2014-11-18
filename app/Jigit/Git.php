@@ -138,6 +138,8 @@ class Git implements InterfaceVcs
         if ($withRemote) {
             $result = trim($this->runInProjectDir('branch -a'));
             $result = str_replace('remotes/', '', $result);
+            $result = str_replace('* ', '', $result);
+            $result = str_replace(' ', '', $result);
         } else {
             $result = trim($this->runInProjectDir('branch'));
         }
