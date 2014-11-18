@@ -69,9 +69,9 @@ class Request
     }
 
     /**
-     * Get parameter
+     * Get all parameters
      *
-     * @return string|array
+     * @return array
      */
     public function getParams()
     {
