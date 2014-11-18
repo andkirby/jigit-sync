@@ -21,7 +21,7 @@ class Container extends Json
     {
         $data = array();
         foreach ($this->getChildren() as $name => $block) {
-            if ($block instanceof Json) {
+            if ($block instanceof JsonChildInterface) {
                 $data[$name] = array('data' => $block->getDataToJson());
             } else {
                 $data[$name] = array('html' => $block->toHtml());

@@ -67,6 +67,24 @@ class IndexController extends Controller\AbstractController
     }
 
     /**
+     * Action to get form options for project
+     */
+    public function getPanelOptionsAction()
+    {
+        try {
+            $this->_getRunner()
+                ->setProject($this->getRequest()->getPostParam('project'))
+                ->initConfig();
+        } catch (UserException $e) {
+            $this->_getSession()->addError($e->getMessage());
+        } catch (\Exception $e) {
+            $this->_getSession()->addError('An error occurred on load JiGIT configuration.');
+        }
+        $this->_loadLayout();
+        $this->_renderBlocks();
+    }
+
+    /**
      * Process action
      *
      * @param Report $report

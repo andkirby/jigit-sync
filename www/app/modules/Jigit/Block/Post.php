@@ -18,7 +18,7 @@ class Post extends Json
      *
      * @return array|string
      */
-    protected function _getDataToJson()
+    public function getDataToJson()
     {
         $output = array();
         $report = $this->_getReport();

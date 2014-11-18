@@ -25,3 +25,9 @@ jigit_x_x:
 jigit_index_post:
   root:
     _class: Jigit\Block\Post
+
+jigit_index_getPanelOptions:
+  root:
+    _class: App\Block\Json\Container
+    options:
+      _class: Jigit\Block\Panel\Option

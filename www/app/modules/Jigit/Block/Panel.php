@@ -122,7 +122,24 @@ class Panel extends FormAbstract
      */
     public function getBranches()
     {
-        return $this->getVcs()->getBranches() + $this->getVcs()->getTags();
+        return array_merge($this->getVcs()->getBranches(), $this->getVcs()->getTags());
+    }
+
+    /**
+     * Get branches options
+     *
+     * @return array
+     */
+    public function getBranchesOptions()
+    {
+        $options = array();
+        foreach ($this->getBranches() as $name) {
+            $options[] = array(
+                'id'    => $name,
+                'value' => $name,
+            );
+        }
+        return $options;
     }
 
     /**
@@ -174,7 +191,9 @@ class Panel extends FormAbstract
      */
     public function getProjectVersions()
     {
-        return array();
+        $project = $this->getRequest()->getPostParam('project');
+
+        return $project ? $this->getRunner()->getApi()->getVersions($project) : array();
     }
 
     /**
