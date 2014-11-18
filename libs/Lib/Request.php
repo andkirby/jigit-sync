@@ -69,6 +69,16 @@ class Request
     }
 
     /**
+     * Get parameter
+     *
+     * @return string|array
+     */
+    public function getParams()
+    {
+        return array_merge($this->getGet(), $this->getPost());
+    }
+
+    /**
      * Set POST parameter
      *
      * @param string $name
