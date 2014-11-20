@@ -166,8 +166,13 @@ class MissedFixVersion extends Standard
         $tags   = $this->getVcs()->getTags();
         //add default branches to identify tasks there
         $gitFlow = Config::getInstance()->getData('app/vcs/git_flow', false);
-        $tags[] = $gitFlow->master;
-        $tags[] = $gitFlow->develop;
+
+        $prefix = '';
+        if (Config\Project::getVcsForceRemoteStatus()) {
+            $prefix = Config\Project::getVcsRemoteName() . '/';
+        }
+        $tags[] = $prefix . $gitFlow->master;
+        $tags[] = $prefix . $gitFlow->develop;
         return $tags;
     }
 

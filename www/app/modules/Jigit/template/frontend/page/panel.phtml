@@ -71,25 +71,10 @@ $this->setData('padding', 5);
                 JIGIT.Form.showInvalidFormMessage();
                 return;
             }
-            if (values.action == 'report') {
-                webix.ajax().post(
-                    '<?php echo $this->getUrl('*/*/getPanelOptions'); ?>',
-                    values, [
-                        JIGIT.Form.defaultRequestCallback,
-                        function (text, xml, xhr) {
-                            var response = xml.json();
-                            if (!response.has_errors) {
-                                console.info('Success');
-                            }
-                        }
-                    ]
-                );
-                return;
-            }
 
             //make request
             webix.ajax().post(
-                '<?php echo $this->getUrl('*/*/post'); ?>',
+                '<?php echo $this->getUrl('*/*/post', array('force-remote' => 1)); ?>',
                 values, [
                     JIGIT.Form.defaultRequestCallback,
                     function (text, xml, xhr) {
