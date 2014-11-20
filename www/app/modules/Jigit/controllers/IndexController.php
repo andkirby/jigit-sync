@@ -1,6 +1,7 @@
 <?php
 namespace Jigit;
 use Lib\Controller;
+use Lib\Sort\Exception;
 
 /**
  * Class IndexController
@@ -43,6 +44,7 @@ class IndexController extends Controller\AbstractController
         } catch (UserException $e) {
             $this->_getSession()->addError($e->getMessage());
         } catch (\Exception $e) {
+            $this->_logException($e);
             $this->_getSession()->addError('An error occurred on load JiGIT configuration.');
         }
 
@@ -67,6 +69,7 @@ class IndexController extends Controller\AbstractController
         } catch (UserException $e) {
             $this->_getSession()->addError($e->getMessage());
         } catch (\Exception $e) {
+            $this->_logException($e);
             $this->_getSession()->addError('An error occurred on request.');
         }
         $this->_loadLayout();
@@ -88,6 +91,7 @@ class IndexController extends Controller\AbstractController
         } catch (UserException $e) {
             $this->_getSession()->addError($e->getMessage());
         } catch (\Exception $e) {
+            $this->_logException($e);
             $this->_getSession()->addError('An error occurred on load JiGIT configuration.');
         }
         $this->_loadLayout();
