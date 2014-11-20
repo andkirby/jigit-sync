@@ -96,6 +96,16 @@ abstract class AbstractController
     }
 
     /**
+     * Get response
+     *
+     * @return null|\Zend_Controller_Response_Abstract
+     */
+    public function getResponse()
+    {
+        return \Zend_Controller_Front::getInstance()->getResponse();
+    }
+
+    /**
      * Get controller name
      *
      * @return string
@@ -151,6 +161,7 @@ abstract class AbstractController
      */
     public function postDispatch()
     {
+        $this->getResponse()->sendResponse();
     }
 
     /**
@@ -190,6 +201,7 @@ abstract class AbstractController
     /**
      * Render request
      *
+     * @deprecated
      * @param array       $data
      * @param string|null $template
      * @param string|null $blockClass
@@ -225,9 +237,9 @@ abstract class AbstractController
             $message->setTemplate('index/messages.phtml');
             $block->setChild('message', $message);
 
-            echo $block->toHtml();
+            $this->getResponse()->appendBody($block->toHtml());
         } else {
-            echo $actionHtml;
+            $this->getResponse()->appendBody($actionHtml);
         }
         return $this;
     }
@@ -289,7 +301,7 @@ abstract class AbstractController
     {
         $root = $this->_getLayout()->getBlock('root');
         if ($root) {
-            echo $root->toHtml();
+            $this->getResponse()->appendBody($root->toHtml());
         }
         return $this;
     }
@@ -350,5 +362,43 @@ abstract class AbstractController
             }
         }
         return $this->_isAjax;
+    }
+
+    /**
+     * Log an exception
+     *
+     * @param \Exception $e
+     * @return $this
+     * @throws \Jigit\Exception
+     * @throws \Zend_Exception
+     * @throws \Zend_Log_Exception
+     */
+    protected function _logException(\Exception $e)
+    {
+        $log = new \Zend_Log();
+        $config = \Zend_Registry::get('config');
+        if ($config->app->log->writer == 'stream') {
+            $dir = APP_ROOT . '/var/log';
+            if (!is_dir($dir)) {
+                if (!@mkdir($dir, 0777, true)) {
+                    throw new \Jigit\Exception("Could not crate directory '$dir'.");
+                }
+            }
+            $file = $dir . '/exception.log';
+
+            $log->addWriter(
+                new \Zend_Log_Writer_Stream($file)
+            );
+        } elseif ($config->app->log->writer == 'syslog') {
+            $log->addWriter(
+                new \Zend_Log_Writer_Syslog(array('application' => 'JIGIT'))
+            );
+        } elseif ($config->app->log->writer == 'firebug') {
+            $log->addWriter(
+                new \Zend_Log_Writer_Firebug()
+            );
+        }
+        $log->log($e, \Zend_Log::ALERT);
+        return $this;
     }
 }

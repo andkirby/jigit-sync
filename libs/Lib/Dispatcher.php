@@ -55,6 +55,8 @@ class Dispatcher
                 $this->_redirectToInstall();
             }
 
+            $this->_initResponse();
+
             $this->_startSession();
             $this->_setSessionPath($this->_getDefaultSessionPath());
 
@@ -331,5 +333,15 @@ class Dispatcher
         //todo add checking domain directory
         header('Location: /install.php', true);
         exit;
+    }
+
+    /**
+     * Init response
+     *
+     * @throws \Zend_Controller_Exception
+     */
+    protected function _initResponse()
+    {
+        \Zend_Controller_Front::getInstance()->setResponse(new \Zend_Controller_Response_Http());
     }
 }
