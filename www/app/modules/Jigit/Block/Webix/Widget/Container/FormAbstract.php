@@ -90,6 +90,9 @@ abstract class FormAbstract extends Row
         if ($valueFromRequest && !isset($config['value']) && $this->getRequest()->getGetParam($name)) {
             $config['value'] = $this->getRequest()->getGetParam($name);
         }
+        if (empty($config['value'])) {
+            unset($config['value']);
+        }
         $this->_elements[$name] = $config;
         return $this;
     }
