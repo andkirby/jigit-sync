@@ -22,7 +22,6 @@ class IndexController extends Controller\AbstractController
     {
         //TODO Refactor this set
         !defined('JIGIT_ROOT') && define('JIGIT_ROOT', realpath(APP_ROOT . '/..'));
-
         \Zend_Registry::set('runner', $this->_getRunner());
     }
 
@@ -36,16 +35,13 @@ class IndexController extends Controller\AbstractController
             if ($project) {
                 $this->_getRunner()->setProject($project);
             }
-
             $this->_getRunner()
                 ->initConfig();
-
             $this->_checkInstallation();
         } catch (UserException $e) {
             $this->_getSession()->addError($e->getMessage());
         } catch (\Exception $e) {
-            $this->_logException($e);
-            $this->_getSession()->addError('An error occurred on load JiGIT configuration.');
+            $this->_addException($e, 'An error occurred on load JiGIT configuration.');
         }
 
         $this->_loadLayout();
@@ -69,8 +65,7 @@ class IndexController extends Controller\AbstractController
         } catch (UserException $e) {
             $this->_getSession()->addError($e->getMessage());
         } catch (\Exception $e) {
-            $this->_logException($e);
-            $this->_getSession()->addError('An error occurred on request.');
+            $this->_addException($e, 'An error occurred on request report.');
         }
         $this->_loadLayout();
         $this->_renderBlocks();
@@ -91,8 +86,7 @@ class IndexController extends Controller\AbstractController
         } catch (UserException $e) {
             $this->_getSession()->addError($e->getMessage());
         } catch (\Exception $e) {
-            $this->_logException($e);
-            $this->_getSession()->addError('An error occurred on load JiGIT configuration.');
+            $this->_addException($e, 'An error occurred on load JiGIT configuration during request form options.');
         }
         $this->_loadLayout();
         $this->_renderBlocks();
