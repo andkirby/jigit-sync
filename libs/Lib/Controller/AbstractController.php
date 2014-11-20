@@ -365,6 +365,27 @@ abstract class AbstractController
     }
 
     /**
+     * Add exception
+     *
+     * @param \Exception $e
+     * @param string     $message
+     * @throws \Jigit\Exception
+     * @throws \Zend_Exception
+     */
+    protected function _addException(\Exception $e, $message = '')
+    {
+        $config = \Zend_Registry::get('config');
+        if ($config->app->debug) {
+            $message = "EXCEPTION: {$e->getMessage()} \nCODE: {$e->getCode()} \n{$e->getTraceAsString()}";
+        } elseif (!$message) {
+                $message = "An error occurred on request {$this->getRequest()->getServer('REQUEST_URI')} " .
+                    "and method {$this->getRequest()->getServer('REQUEST_METHOD')}";
+        }
+        $this->_getSession()->addError($message);
+        $this->_logException($e);
+    }
+
+    /**
      * Log an exception
      *
      * @param \Exception $e
@@ -398,7 +419,7 @@ abstract class AbstractController
                 new \Zend_Log_Writer_Firebug()
             );
         }
-        $log->log($e, \Zend_Log::ALERT);
+        $log->log($this->getRequest()->getParams(), \Zend_Log::ALERT);
         return $this;
     }
 }
