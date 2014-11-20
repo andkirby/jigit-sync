@@ -381,7 +381,7 @@ abstract class AbstractController
             $dir = APP_ROOT . '/var/log';
             if (!is_dir($dir)) {
                 if (!@mkdir($dir, 0777, true)) {
-                    throw new \Jigit\Exception("Could not crate directory '$dir'.");
+                    throw new \Jigit\Exception("Could not create directory '$dir'.");
                 }
             }
             $file = $dir . '/exception.log';
